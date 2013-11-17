@@ -13,6 +13,8 @@ File > Open/Save in Encoding...
 Current file encoding will be shown on Toolbar. If you want to change encoding, Please select specific encoding.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
 
+If you don't want to show it, uncheck `View > Toolbar > Encoding`.
+
 ## License
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)
 
