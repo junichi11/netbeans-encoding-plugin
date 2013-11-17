@@ -9,6 +9,10 @@ This plugin opens/saves a file with a specified encoding.
 
 File > Open/Save in Encoding...
 
+## Show encoding on Toolbar
+Current file encoding will be shown on Toolbar. If you want to change encoding, Please select specific encoding.
+(Note: Then, file is closed once and opened again. i.e. File is reopened.)
+
 ## License
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)
 
