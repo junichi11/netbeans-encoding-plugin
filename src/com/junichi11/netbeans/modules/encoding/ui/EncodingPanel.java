@@ -286,7 +286,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
             Charset encoding = getEncoding(fileObject);
             String currentEncoding = encoding.name();
             String selectedEncoding = (String) e.getItem();
-            if (selectedEncoding.equals(currentEncoding)) {
+            // #1 encoding is empty when snippet is inserted with palette
+            if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
                 return;
             }
 
