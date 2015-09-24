@@ -17,7 +17,7 @@ If you don't want to show it, uncheck `View > Toolbar > Encoding`.
 
 ## Translations
 
-- [README_es.md](README_es.md) - Español ([@javatlacati](scherzo16@gmail.com))
+- [README_es.md](README_es.md) - Español ([@javatlacati](https://github.com/javatlacati))
 
 ## License
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)
