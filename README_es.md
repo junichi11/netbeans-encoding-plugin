@@ -19,5 +19,4 @@ Si no desea que se muestre deseleccione la casilla `View > Toolbar > Encoding`.
 Cloned from encoding module of main/contrib repository. (Tomas Zezula)
 Also see https://netbeans.org/bugzilla/show_bug.cgi?id=114123
 
-Translator : @javatlacati
-Contact: scherzo16@gmail.com
+Translator : [@javatlacati](scherzo16@gmail.com)
