@@ -147,6 +147,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
                 .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(defaultEncodingLabel))
         );
+
+        defaultEncodingLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(EncodingPanel.class, "EncodingPanel.defaultEncodingLabel.AccessibleContext.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
     private void encodingComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_encodingComboBoxActionPerformed
