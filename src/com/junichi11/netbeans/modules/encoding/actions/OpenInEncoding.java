@@ -26,6 +26,7 @@ public final class OpenInEncoding extends CallableSystemAction {
 
     static File lastFolder = new File(System.getProperty("user.home")); //NOI18N
     static Charset lastEncoding = null;
+    private static final long serialVersionUID = 3891880406655022866L;
 
     @Override
     public void performAction() {
