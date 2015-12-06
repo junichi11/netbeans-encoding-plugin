@@ -23,6 +23,8 @@ import org.openide.util.NbBundle;
  */
 public class EncodingAccessories extends javax.swing.JPanel {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * Creates new form EncodingAccessories
      */
@@ -165,6 +167,11 @@ public class EncodingAccessories extends javax.swing.JPanel {
     }
 
     private static class EncodingRenderer extends DefaultListCellRenderer {
+
+        /**
+         * number to verify correct serialization/deserialization
+         */
+        private static final long serialVersionUID = 1L;
 
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
