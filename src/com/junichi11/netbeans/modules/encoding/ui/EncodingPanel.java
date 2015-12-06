@@ -55,7 +55,7 @@ import javax.swing.text.JTextComponent;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.netbeans.modules.editor.NbEditorUtilities;
-import org.netbeans.spi.queries.FileEncodingQueryImplementation;
+//import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.cookies.CloseCookie;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.OpenCookie;
@@ -75,6 +75,11 @@ import org.openide.windows.WindowManager;
  * @author junichi11
  */
 public class EncodingPanel extends JPanel implements LookupListener {
+
+    /**
+     * number to verify correct serialization/deserialization
+     */
+    private static final long serialVersionUID = 1L;
 
     private Lookup.Result<FileObject> result;
     private FileObject currentFileObject;
@@ -210,28 +215,28 @@ public class EncodingPanel extends JPanel implements LookupListener {
         return encoding;
     }
 
-    private void setDefaultEncoding(FileObject fileObject) {
-        Charset charset = null;
-        if (fileObject != null) {
-            for (FileEncodingQueryImplementation impl : Lookup.getDefault().lookupAll(FileEncodingQueryImplementation.class)) {
-                if (impl instanceof OpenInEncodingQueryImpl) {
-                    continue;
-                }
-                Charset encoding = impl.getEncoding(fileObject);
-                if (encoding != null) {
-                    charset = encoding;
-                    break;
-                }
-            }
-        }
-
-        String encoding = ""; // NOI18N
-        if (charset != null) {
-            encoding = String.format("(%s)", charset.name()); // NOI18N
-        }
-        defaultEncodingLabel.setText(encoding);
-    }
-
+    //TODO unused method
+//    private void setDefaultEncoding(FileObject fileObject) {
+//        Charset charset = null;
+//        if (fileObject != null) {
+//            for (FileEncodingQueryImplementation impl : Lookup.getDefault().lookupAll(FileEncodingQueryImplementation.class)) {
+//                if (impl instanceof OpenInEncodingQueryImpl) {
+//                    continue;
+//                }
+//                Charset encoding = impl.getEncoding(fileObject);
+//                if (encoding != null) {
+//                    charset = encoding;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        String encoding = ""; // NOI18N
+//        if (charset != null) {
+//            encoding = String.format("(%s)", charset.name()); // NOI18N
+//        }
+//        defaultEncodingLabel.setText(encoding);
+//    }
     private void setEncodingEnabled(boolean isEnabled) {
         encodingComboBox.setEnabled(isEnabled);
     }
@@ -268,9 +273,7 @@ public class EncodingPanel extends JPanel implements LookupListener {
     //~ Inner class
     private class DefaultItemListener implements ItemListener {
 
-        public DefaultItemListener() {
-        }
-
+        //public DefaultItemListener() {}
         @Override
         public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() != ItemEvent.SELECTED) {
