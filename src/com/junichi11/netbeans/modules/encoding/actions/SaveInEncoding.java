@@ -31,7 +31,8 @@ import org.openide.windows.WindowManager;
 /**
  * Action that saves in the specified encoding the selected file.
  */
-@ActionID(id = "com.junichi11.netbeans.modules.encoding.actions.SaveInEncoding", category = "File")
+@ActionID(id = "com.junichi11.netbeans.modules.encoding.actions.SaveInEncoding",
+        category = "File")
 @ActionRegistration(lazy = false, displayName = "Save In Encoding...")
 @ActionReference(path = "Menu/File", position = 1725)
 public final class SaveInEncoding extends CookieAction {
@@ -51,31 +52,42 @@ public final class SaveInEncoding extends CookieAction {
      * @param activatedNodes project nodes in wich it will act
      */
     @Override
-    protected void performAction(Node[] activatedNodes) {
-        final DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
-        FileObject fo = dataObject.getPrimaryFile();
-        File f = FileUtil.toFile(fo);
+    protected void performAction(final Node[] activatedNodes) {
+        final DataObject dataObject = activatedNodes[0].getLookup()
+                .lookup(DataObject.class);
+        FileObject fileObject = dataObject.getPrimaryFile();
+        File f = FileUtil.toFile(fileObject);
         if (f == null) {
-            f = FileUtil.normalizeFile(new File(new File(System.getProperty("user.name")), fo.getNameExt()));
+            f = FileUtil.normalizeFile(new File(new File(
+                    System.getProperty("user.name")), fileObject.getNameExt()));
         }
         final JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(null);
-        chooser.setDialogTitle(NbBundle.getMessage(OpenInEncoding.class, "TXT_SaveFile"));
-        chooser.setApproveButtonText(NbBundle.getMessage(OpenInEncoding.class, "CTL_Save"));
-        chooser.setApproveButtonMnemonic(NbBundle.getMessage(OpenInEncoding.class, "MNE_Save").charAt(0));
+        chooser.setDialogTitle(NbBundle.getMessage(
+                OpenInEncoding.class, "TXT_SaveFile"));
+        chooser.setApproveButtonText(NbBundle.getMessage(
+                OpenInEncoding.class, "CTL_Save"));
+        chooser.setApproveButtonMnemonic(NbBundle.getMessage(
+                OpenInEncoding.class, "MNE_Save").charAt(0));
         chooser.setSelectedFile(f);
         final EncodingAccessories acc = new EncodingAccessories();
         acc.setEncoding(null); //Always suggest the default encoding
         chooser.setAccessory(acc);
-        if (chooser.showSaveDialog(WindowManager.getDefault().getMainWindow()) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(
+                WindowManager.getDefault().getMainWindow())
+                == JFileChooser.APPROVE_OPTION) {
             final Charset charset = acc.getEncoding();
-            final String encodingName = (charset == null ? null : charset.name());
+            final String encodingName = (charset == null
+                    ? null
+                    : charset.name());
             OpenInEncoding.setLastFolder(chooser.getCurrentDirectory());
             final File file = FileUtil.normalizeFile(chooser.getSelectedFile());
-            if (f.equals(file) && activatedNodes[0].getLookup().lookup(SaveCookie.class) != null) {
+            if (f.equals(file) && activatedNodes[0].getLookup()
+                    .lookup(SaveCookie.class) != null) {
                 try {
-                    fo.setAttribute(OpenInEncodingQueryImpl.ENCODING, encodingName);
-                    final SaveCookie sc = activatedNodes[0].getLookup().lookup(SaveCookie.class);
+                    fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, encodingName);
+                    final SaveCookie sc = activatedNodes[0].getLookup()
+                            .lookup(SaveCookie.class);
                     sc.save();
                 } catch (IOException e) {
                     Exceptions.printStackTrace(e);
@@ -83,15 +95,17 @@ public final class SaveInEncoding extends CookieAction {
             } else {
                 try {
                     //Todo: Perf, don't load whole data into mem.
-                    final StringBuilder sb = new StringBuilder();
-                    readFile(sb, fo);
-                    fo = FileUtil.createData(file);
-                    fo.setAttribute(OpenInEncodingQueryImpl.ENCODING, encodingName);
-                    final FileLock lock = fo.lock();
-                    writeFileToDisk(lock, fo, sb);
-                    final DataObject newDobj = DataObject.find(fo);
-                    final OpenCookie oc = newDobj.getLookup().lookup(OpenCookie.class);
-                    setEditorCookie(dataObject, oc);
+                    final StringBuilder stringBuilder = new StringBuilder();
+                    readFile(stringBuilder, fileObject);
+                    fileObject = FileUtil.createData(file);
+                    fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING,
+                            encodingName);
+                    final FileLock lock = fileObject.lock();
+                    writeFileToDisk(lock, fileObject, stringBuilder);
+                    final DataObject newDobj = DataObject.find(fileObject);
+                    final OpenCookie cookie = newDobj.getLookup()
+                            .lookup(OpenCookie.class);
+                    setEditorCookie(dataObject, cookie);
 
                 } catch (IOException e) {
                     Exceptions.printStackTrace(e);
@@ -101,7 +115,7 @@ public final class SaveInEncoding extends CookieAction {
     }
 
     /**
-     * provides cookie mode policy
+     * Provides cookie mode policy.
      *
      * @return Cookie Action Mode
      * @see CookieAction
@@ -172,11 +186,12 @@ public final class SaveInEncoding extends CookieAction {
     /**
      * Reads File from disk.
      */
-    private void readFile(StringBuilder sb, FileObject fo) {
+    private void readFile(final StringBuilder sb, FileObject fo) {
         Reader in = null;
         try {
             final char[] buffer = new char[BUFFERSIZE];
-            in = new InputStreamReader(fo.getInputStream(), FileEncodingQuery.getEncoding(fo));
+            in = new InputStreamReader(fo.getInputStream(),
+                    FileEncodingQuery.getEncoding(fo));
 
             int len;
             while ((len = in.read(buffer)) > 0) {
@@ -200,11 +215,12 @@ public final class SaveInEncoding extends CookieAction {
     /**
      * Writes cookie to some project data object.
      */
-    private void setEditorCookie(DataObject dataObject, OpenCookie oc) {
+    private void setEditorCookie(final DataObject dataObject, OpenCookie oc) {
         if (oc != null) {
-            EditorCookie ec = dataObject.getLookup().lookup(EditorCookie.class);
-            if (ec != null) {
-                ec.close();
+            EditorCookie cookie = dataObject.getLookup()
+                    .lookup(EditorCookie.class);
+            if (cookie != null) {
+                cookie.close();
             }
             oc.open();
         }
