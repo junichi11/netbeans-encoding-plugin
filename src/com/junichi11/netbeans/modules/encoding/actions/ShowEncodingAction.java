@@ -64,6 +64,11 @@ import org.openide.util.actions.Presenter;
 @Messages("CTL_ShowEncodingAction=")
 public class ShowEncodingAction extends AbstractAction implements Presenter.Toolbar {
 
+    /**
+     * number to verify correct serialization/deserialization
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void actionPerformed(ActionEvent e) {
         // noop
