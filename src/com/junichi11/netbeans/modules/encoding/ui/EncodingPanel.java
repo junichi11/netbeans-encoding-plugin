@@ -96,19 +96,21 @@ public class EncodingPanel extends JPanel implements LookupListener {
 
     private void init() {
         defaultEncodingLabel.setText(""); // NOI18N
-        final Collection<? extends Charset> charsets = Charset.availableCharsets().values();
-        DefaultComboBoxModel defaultComboBoxModel = new DefaultComboBoxModel();
-        defaultComboBoxModel.addElement(""); // NOI18N
+        final Collection<? extends Charset> charsets = Charset.
+                availableCharsets().values();
+        DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
+        comboBoxModel.addElement(""); // NOI18N
         for (Charset charset : charsets) {
-            defaultComboBoxModel.addElement(charset.name());
+            comboBoxModel.addElement(charset.name());
         }
-        encodingComboBox.setModel(defaultComboBoxModel);
+        encodingComboBox.setModel(comboBoxModel);
         encodingComboBox.addItemListener(new DefaultItemListener());
         setEncodingEnabled(false);
     }
 
     private void addLookupListener() {
-        result = Utilities.actionsGlobalContext().lookupResult(FileObject.class);
+        result = Utilities.actionsGlobalContext()
+                .lookupResult(FileObject.class);
         result.addLookupListener(this);
     }
 
@@ -171,7 +173,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
 
     @Override
     public void resultChanged(final LookupEvent lookupEvent) {
-        final Lookup.Result lookupResult = (Lookup.Result) lookupEvent.getSource();
+        final Lookup.Result lookupResult
+                = (Lookup.Result) lookupEvent.getSource();
         final Collection filesCollection = lookupResult.allInstances();
         String encoding = ""; // NOI18N
         if (filesCollection.isEmpty()) {
@@ -197,7 +200,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
     }
 
     private boolean isEditor() {
-        final TopComponent activated = TopComponent.getRegistry().getActivated();
+        final TopComponent activated = TopComponent.getRegistry()
+                .getActivated();
         if (activated != null) {
             final WindowManager windowManager = WindowManager.getDefault();
             final Mode mode = windowManager.findMode(activated);
@@ -221,7 +225,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
 //    private void setDefaultEncoding(FileObject fileObject) {
 //        Charset charset = null;
 //        if (fileObject != null) {
-//            for (FileEncodingQueryImplementation impl : Lookup.getDefault().lookupAll(FileEncodingQueryImplementation.class)) {
+//            for (FileEncodingQueryImplementation impl : Lookup.getDefault()
+//.lookupAll(FileEncodingQueryImplementation.class)) {
 //                if (impl instanceof OpenInEncodingQueryImpl) {
 //                    continue;
 //                }
@@ -250,7 +255,7 @@ public class EncodingPanel extends JPanel implements LookupListener {
         }
 
         final FileObject lastFocusedFileObject = getLastFocusedFileObject();
-        if (fileObject == lastFocusedFileObject) {
+        if (fileObject.equals(lastFocusedFileObject)) {
             setEncodingEnabled(true);
             return;
         }
@@ -277,8 +282,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
 
         //public DefaultItemListener() {}
         @Override
-        public void itemStateChanged(final ItemEvent e) {
-            if (e.getStateChange() != ItemEvent.SELECTED) {
+        public void itemStateChanged(final ItemEvent event) {
+            if (event.getStateChange() != ItemEvent.SELECTED) {
                 return;
             }
 
@@ -289,17 +294,19 @@ public class EncodingPanel extends JPanel implements LookupListener {
 
             // same encoding?
             final Charset encoding = getEncoding(fileObject);
-            String currentEncoding = encoding.name();
-            String selectedEncoding = (String) e.getItem();
+            final String currentEncoding = encoding.name();
+            final String selectedEncoding = (String) event.getItem();
             // #1 encoding is empty when snippet is inserted with palette
-            if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+            if (selectedEncoding.equals(currentEncoding)
+                    || selectedEncoding.isEmpty()) {
                 return;
             }
 
             // set encoding to attribute, reopen file
-            if (currentFileObject != null && fileObject == currentFileObject) {
+            if (currentFileObject != null && fileObject.equals(currentFileObject)) {
                 try {
-                    currentFileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
+                    currentFileObject.setAttribute(
+                            OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
                     final DataObject dobj = DataObject.find(currentFileObject);
 
                     reopen(dobj);
