@@ -19,14 +19,30 @@ import org.openide.util.NbBundle;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
+/**
+ * Action that opens in the specified encoding the selected file.
+ */
 @ActionID(id = "com.junichi11.netbeans.modules.encoding.actions.OpenInEncoding", category = "File")
 @ActionRegistration(lazy = false, displayName = "Open in Encoding ...")
 @ActionReference(path = "Menu/File", position = 950)
 public final class OpenInEncoding extends CallableSystemAction {
 
-    static File lastFolder = new File(System.getProperty("user.home")); //NOI18N
-    static Charset lastEncoding = null;
+    /**
+     * Last opened folder
+     */
+    private static File lastFolder = new File(System.getProperty("user.home")); //NOI18N
+    /**
+     * Last encoding used
+     */
+    private static Charset lastEncoding = null;
+    /**
+     * number to verify correct serialization/deserialization
+     */
+    private static final long serialVersionUID = 3891880406655022866L;
 
+    /**
+     * Provides behaviour for the open file in encoding action
+     */
     @Override
     public void performAction() {
         final JFileChooser chooser = new JFileChooser();
@@ -60,11 +76,37 @@ public final class OpenInEncoding extends CallableSystemAction {
         }
     }
 
+    /**
+     * Obtains last opened folder.
+     *
+     * @return folder wich open dialog should show by default
+     */
+    public static File getLastFolder() {
+        return lastFolder;
+    }
+
+    /**
+     * Configures last opened folder.
+     *
+     * @param lastFolder folder wich open dialog should show by default
+     */
+    public static void setLastFolder(File lastFolder) {
+        OpenInEncoding.lastFolder = lastFolder;
+    }
+
+    /**
+     * Gets the internationalized name of this action
+     *
+     * @return name of the action
+     */
     @Override
     public String getName() {
         return NbBundle.getMessage(OpenInEncoding.class, "CTL_OpenInEncoding");
     }
 
+    /**
+     * Method that handles icons for this action. For now no icon is shown.
+     */
     @Override
     protected void initialize() {
         super.initialize();
@@ -72,11 +114,21 @@ public final class OpenInEncoding extends CallableSystemAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    /**
+     * Displays that the help is not avalible.
+     *
+     * @return help context (none yet)
+     */
     @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }
 
+    /**
+     * This action is not asynchronous.
+     *
+     * @return if the method can be run asynchronously
+     */
     @Override
     protected boolean asynchronous() {
         return false;
