@@ -23,6 +23,6 @@ If you don't want to show it, uncheck `View > Toolbar > Encoding`.
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)
 
 ----
-Cloned from encoding module of main/contrib repository. ([Tomas Zezula](https://github.com/tzezula))
+Cloned from `encoding module` of `main/contrib` repository. ([Tomas Zezula](https://github.com/tzezula))
 
 Also see [https://netbeans.org/bugzilla/show_bug.cgi?id=114123](https://netbeans.org/bugzilla/show_bug.cgi?id=114123)

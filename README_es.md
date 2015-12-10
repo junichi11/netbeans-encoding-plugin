@@ -1,10 +1,10 @@
 # NetBeans Encoding Plugin
 Este plugin abre/guarda un archivo con una codificación especificada
 
-## Requirements
+## Requerimientos
 
 - NetBeans7.4+
-## Open/Save in Encoding
+## Abrior/Guardar en la Codificación
 File > Open/Save in Encoding...
 
 La codificación actual se mostrará en la Barra de Herramientas. Si desea cambiar la codificación, por favor seleccione la codificación específica.
@@ -12,11 +12,11 @@ La codificación actual se mostrará en la Barra de Herramientas. Si desea cambi
 
 Si no desea que se muestre deseleccione la casilla `View > Toolbar > Encoding`.
 
-## License
+## Licencia
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)
 
  ----
-Cloned from encoding module of main/contrib repository. (Tomas Zezula)
-Also see https://netbeans.org/bugzilla/show_bug.cgi?id=114123
+Clonado de `encoding module` del repositorio `main/contrib`. (Tomas Zezula)
+También vea https://netbeans.org/bugzilla/show_bug.cgi?id=114123
 
-Translator : [@javatlacati](https://github.com/javatlacati) (scherzo16@gmail.com)
+Traductor : [@javatlacati](https://github.com/javatlacati) (scherzo16@gmail.com)
