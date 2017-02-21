@@ -56,16 +56,23 @@ import org.openide.util.actions.Presenter;
  *
  * @author junichi11
  */
-@ActionID(category = "View", id = "com.junichi11.netbeans.modules.encoding.ShowEncodingAction")
+@ActionID(category = "View",
+        id = "com.junichi11.netbeans.modules.encoding.ShowEncodingAction")
 @ActionRegistration(lazy = false, displayName = "#CTL_ShowEncodingAction")
 @ActionReferences({
     @ActionReference(path = "Toolbars/Encoding", position = 0)
 })
 @Messages("CTL_ShowEncodingAction=")
-public class ShowEncodingAction extends AbstractAction implements Presenter.Toolbar {
+public class ShowEncodingAction extends AbstractAction
+        implements Presenter.Toolbar {
+
+    /**
+     * number to verify correct serialization/deserialization.
+     */
+    private static final long serialVersionUID = 1L;
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(final ActionEvent event) {
         // noop
     }
 

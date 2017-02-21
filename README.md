@@ -15,9 +15,16 @@ Current file encoding will be shown on Toolbar. If you want to change encoding, 
 
 If you don't want to show it, uncheck `View > Toolbar > Encoding`.
 
-## Translations
+## Translations of this file
 
-- [README_es.md](README_es.md) - Español ([@javatlacati](https://github.com/javatlacati))
+ [README_es.md](README_es.md) - Español(Spanish) ([@javatlacati](https://github.com/javatlacati))
+
+## Languages of the project
+
+* English
+* Spanish - Español
+* Italian - Italiano
+* French - Français
 
 ## License
 [Common Development and Distribution License (CDDL) v1.0 and GNU General Public License (GPL) v2](http://netbeans.org/cddl-gplv2.html)

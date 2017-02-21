@@ -55,7 +55,7 @@ import javax.swing.text.JTextComponent;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.netbeans.modules.editor.NbEditorUtilities;
-import org.netbeans.spi.queries.FileEncodingQueryImplementation;
+//import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.cookies.CloseCookie;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.OpenCookie;
@@ -76,6 +76,11 @@ import org.openide.windows.WindowManager;
  */
 public class EncodingPanel extends JPanel implements LookupListener {
 
+    /**
+     * number to verify correct serialization/deserialization.
+     */
+    private static final long serialVersionUID = 1L;
+
     private Lookup.Result<FileObject> result;
     private FileObject currentFileObject;
     private final OpenInEncodingQueryImpl queryImpl = new OpenInEncodingQueryImpl();
@@ -91,19 +96,21 @@ public class EncodingPanel extends JPanel implements LookupListener {
 
     private void init() {
         defaultEncodingLabel.setText(""); // NOI18N
-        final Collection<? extends Charset> charsets = Charset.availableCharsets().values();
-        DefaultComboBoxModel defaultComboBoxModel = new DefaultComboBoxModel();
-        defaultComboBoxModel.addElement(""); // NOI18N
+        final Collection<? extends Charset> charsets = Charset.
+                availableCharsets().values();
+        DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
+        comboBoxModel.addElement(""); // NOI18N
         for (Charset charset : charsets) {
-            defaultComboBoxModel.addElement(charset.name());
+            comboBoxModel.addElement(charset.name());
         }
-        encodingComboBox.setModel(defaultComboBoxModel);
+        encodingComboBox.setModel(comboBoxModel);
         encodingComboBox.addItemListener(new DefaultItemListener());
         setEncodingEnabled(false);
     }
 
     private void addLookupListener() {
-        result = Utilities.actionsGlobalContext().lookupResult(FileObject.class);
+        result = Utilities.actionsGlobalContext()
+                .lookupResult(FileObject.class);
         result.addLookupListener(this);
     }
 
@@ -165,20 +172,21 @@ public class EncodingPanel extends JPanel implements LookupListener {
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void resultChanged(LookupEvent lookupEvent) {
-        Lookup.Result r = (Lookup.Result) lookupEvent.getSource();
-        Collection c = r.allInstances();
-        String en = ""; // NOI18N
-        if (!c.isEmpty()) {
-            currentFileObject = (FileObject) c.iterator().next();
-            Charset encoding = getEncoding(currentFileObject);
-            if (encoding != null) {
-                en = encoding.name();
-            }
-        } else {
+    public void resultChanged(final LookupEvent lookupEvent) {
+        final Lookup.Result lookupResult
+                = (Lookup.Result) lookupEvent.getSource();
+        final Collection filesCollection = lookupResult.allInstances();
+        String encoding = ""; // NOI18N
+        if (filesCollection.isEmpty()) {
             currentFileObject = null;
+        } else {
+            currentFileObject = (FileObject) filesCollection.iterator().next();
+            final Charset encodingOfFile = getEncoding(currentFileObject);
+            if (encodingOfFile != null) {
+                encoding = encodingOfFile.name();
+            }
         }
-        final String encodingName = en;
+        final String encodingName = encoding;
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -192,19 +200,20 @@ public class EncodingPanel extends JPanel implements LookupListener {
     }
 
     private boolean isEditor() {
-        TopComponent activated = TopComponent.getRegistry().getActivated();
+        final TopComponent activated = TopComponent.getRegistry()
+                .getActivated();
         if (activated != null) {
-            WindowManager windowManager = WindowManager.getDefault();
-            Mode mode = windowManager.findMode(activated);
+            final WindowManager windowManager = WindowManager.getDefault();
+            final Mode mode = windowManager.findMode(activated);
             if (mode != null) {
-                String name = mode.getName();
-                return name.equals("editor"); // NOI18N
+                final String name = mode.getName();
+                return "editor".equals(name); // NOI18N
             }
         }
         return false;
     }
 
-    private Charset getEncoding(FileObject fileObject) {
+    private Charset getEncoding(final FileObject fileObject) {
         Charset encoding = queryImpl.getEncoding(fileObject);
         if (encoding == null) {
             encoding = FileEncodingQuery.getEncoding(fileObject);
@@ -212,40 +221,41 @@ public class EncodingPanel extends JPanel implements LookupListener {
         return encoding;
     }
 
-    private void setDefaultEncoding(FileObject fileObject) {
-        Charset charset = null;
-        if (fileObject != null) {
-            for (FileEncodingQueryImplementation impl : Lookup.getDefault().lookupAll(FileEncodingQueryImplementation.class)) {
-                if (impl instanceof OpenInEncodingQueryImpl) {
-                    continue;
-                }
-                Charset encoding = impl.getEncoding(fileObject);
-                if (encoding != null) {
-                    charset = encoding;
-                    break;
-                }
-            }
-        }
-
-        String encoding = ""; // NOI18N
-        if (charset != null) {
-            encoding = String.format("(%s)", charset.name()); // NOI18N
-        }
-        defaultEncodingLabel.setText(encoding);
-    }
-
-    private void setEncodingEnabled(boolean isEnabled) {
+    //TODO unused method
+//    private void setDefaultEncoding(FileObject fileObject) {
+//        Charset charset = null;
+//        if (fileObject != null) {
+//            for (FileEncodingQueryImplementation impl : Lookup.getDefault()
+//.lookupAll(FileEncodingQueryImplementation.class)) {
+//                if (impl instanceof OpenInEncodingQueryImpl) {
+//                    continue;
+//                }
+//                Charset encoding = impl.getEncoding(fileObject);
+//                if (encoding != null) {
+//                    charset = encoding;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        String encoding = ""; // NOI18N
+//        if (charset != null) {
+//            encoding = String.format("(%s)", charset.name()); // NOI18N
+//        }
+//        defaultEncodingLabel.setText(encoding);
+//    }
+    private void setEncodingEnabled(final boolean isEnabled) {
         encodingComboBox.setEnabled(isEnabled);
     }
 
-    private void setEncodingEnabled(FileObject fileObject) {
+    private void setEncodingEnabled(final FileObject fileObject) {
         if (fileObject == null || fileObject.isFolder()) {
             setEncodingEnabled(false);
             return;
         }
 
-        FileObject lastFocusedFileObject = getLastFocusedFileObject();
-        if (fileObject == lastFocusedFileObject) {
+        final FileObject lastFocusedFileObject = getLastFocusedFileObject();
+        if (fileObject.equals(lastFocusedFileObject)) {
             setEncodingEnabled(true);
             return;
         }
@@ -254,12 +264,12 @@ public class EncodingPanel extends JPanel implements LookupListener {
     }
 
     private FileObject getLastFocusedFileObject() {
-        JTextComponent editor = EditorRegistry.lastFocusedComponent();
+        final JTextComponent editor = EditorRegistry.lastFocusedComponent();
         if (editor == null) {
             return null;
         }
 
-        Document document = editor.getDocument();
+        final Document document = editor.getDocument();
         if (document == null) {
             return null;
         }
@@ -270,33 +280,33 @@ public class EncodingPanel extends JPanel implements LookupListener {
     //~ Inner class
     private class DefaultItemListener implements ItemListener {
 
-        public DefaultItemListener() {
-        }
-
+        //public DefaultItemListener() {}
         @Override
-        public void itemStateChanged(ItemEvent e) {
-            if (e.getStateChange() != ItemEvent.SELECTED) {
+        public void itemStateChanged(final ItemEvent event) {
+            if (event.getStateChange() != ItemEvent.SELECTED) {
                 return;
             }
 
-            FileObject fileObject = getLastFocusedFileObject();
+            final FileObject fileObject = getLastFocusedFileObject();
             if (fileObject == null) {
                 return;
             }
 
             // same encoding?
-            Charset encoding = getEncoding(fileObject);
-            String currentEncoding = encoding.name();
-            String selectedEncoding = (String) e.getItem();
+            final Charset encoding = getEncoding(fileObject);
+            final String currentEncoding = encoding.name();
+            final String selectedEncoding = (String) event.getItem();
             // #1 encoding is empty when snippet is inserted with palette
-            if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+            if (selectedEncoding.equals(currentEncoding)
+                    || selectedEncoding.isEmpty()) {
                 return;
             }
 
             // set encoding to attribute, reopen file
-            if (currentFileObject != null && fileObject == currentFileObject) {
+            if (currentFileObject != null && fileObject.equals(currentFileObject)) {
                 try {
-                    currentFileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
+                    currentFileObject.setAttribute(
+                            OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
                     final DataObject dobj = DataObject.find(currentFileObject);
 
                     reopen(dobj);
@@ -318,7 +328,7 @@ public class EncodingPanel extends JPanel implements LookupListener {
             open(dobj);
         }
 
-        private void close(DataObject dobj) {
+        private void close(final DataObject dobj) {
             CloseCookie cc = dobj.getLookup().lookup(CloseCookie.class);
             EditorCookie ec = dobj.getLookup().lookup(EditorCookie.class);
 
@@ -330,7 +340,7 @@ public class EncodingPanel extends JPanel implements LookupListener {
             }
         }
 
-        private void open(DataObject dobj) {
+        private void open(final DataObject dobj) {
             OpenCookie oc = dobj.getLookup().lookup(OpenCookie.class);
             if (oc != null) {
                 oc.open();

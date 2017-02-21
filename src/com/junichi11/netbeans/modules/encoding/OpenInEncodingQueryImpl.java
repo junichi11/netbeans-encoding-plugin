@@ -29,6 +29,8 @@ package com.junichi11.netbeans.modules.encoding;
 
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.util.lookup.ServiceProvider;
@@ -38,19 +40,28 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Tomas Zezula
  */
 @ServiceProvider(service = FileEncodingQueryImplementation.class, position = 10)
-public final class OpenInEncodingQueryImpl extends FileEncodingQueryImplementation {
+public final class OpenInEncodingQueryImpl
+        extends FileEncodingQueryImplementation {
 
+    /**
+     * Name of the FileObject atttribute that holds the encoding name.
+     */
     public static final String ENCODING = "encoding"; //NOI18N
 
     @Override
-    public Charset getEncoding(FileObject file) {
+    public Charset getEncoding(final FileObject file) {
         assert file != null;
         final Object encodingName = file.getAttribute(ENCODING);
         try {
-            return encodingName instanceof String ? Charset.forName((String) encodingName) : null;
+            return encodingName instanceof String
+                    ? Charset.forName((String) encodingName)
+                    : null;
         } catch (IllegalCharsetNameException e) {
-            return null;
+            Logger.getGlobal().log(Level.WARNING,
+                    "File has an invalid charset name");
+          //TODO internationalize warning
         }
+        return null;
     }
 
 }
