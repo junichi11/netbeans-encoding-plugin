@@ -46,8 +46,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.NbBundle.Messages;
@@ -59,9 +57,6 @@ import org.openide.util.lookup.ServiceProvider;
  */
 @ActionID(category = "View", id = "com.junichi11.netbeans.modules.encoding.ShowEncodingAction")
 @ActionRegistration(lazy = false, displayName = "#CTL_ShowEncodingAction")
-@ActionReferences({
-    @ActionReference(path = "Toolbars/Encoding", position = 0)
-})
 @Messages("CTL_ShowEncodingAction=")
 @ServiceProvider(service = StatusLineElementProvider.class)
 public class ShowEncodingAction extends AbstractAction implements StatusLineElementProvider {
