@@ -42,14 +42,21 @@
 package com.junichi11.netbeans.modules.encoding.ui;
 
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.api.editor.EditorRegistry;
@@ -187,6 +194,8 @@ public class EncodingPanel extends JPanel implements LookupListener {
 //                setDefaultEncoding(currentFileObject);
                 setEncodingEnabled(currentFileObject);
                 encodingComboBox.setSelectedItem(encodingName); // NOI18N
+                // TODO: Add margin (outer) to the left and to the right.
+//                encodingComboBox.setRenderer(new BorderListCellRenderer(5));
             }
         });
     }
@@ -337,5 +346,27 @@ public class EncodingPanel extends JPanel implements LookupListener {
             }
         }
 
+    }
+    
+    private class BorderListCellRenderer extends DefaultListCellRenderer {
+    
+        private final Border insetBorder;
+
+        private final DefaultListCellRenderer defaultRenderer;
+
+        public BorderListCellRenderer(int rightMargin) {
+            this.insetBorder = new EmptyBorder(0, 2, 0, rightMargin);
+            this.defaultRenderer = new DefaultListCellRenderer();
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value,
+                int index, boolean isSelected, boolean cellHasFocus) {
+            JLabel renderer = (JLabel) defaultRenderer
+                    .getListCellRendererComponent(list, value, index, isSelected,
+                            cellHasFocus);
+            renderer.setBorder(insetBorder);
+            return renderer;
+        }
     }
 }

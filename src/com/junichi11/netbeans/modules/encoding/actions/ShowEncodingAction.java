@@ -46,11 +46,10 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.actions.Presenter;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
@@ -58,11 +57,9 @@ import org.openide.util.actions.Presenter;
  */
 @ActionID(category = "View", id = "com.junichi11.netbeans.modules.encoding.ShowEncodingAction")
 @ActionRegistration(lazy = false, displayName = "#CTL_ShowEncodingAction")
-@ActionReferences({
-    @ActionReference(path = "Toolbars/Encoding", position = 0)
-})
 @Messages("CTL_ShowEncodingAction=")
-public class ShowEncodingAction extends AbstractAction implements Presenter.Toolbar {
+@ServiceProvider(service = StatusLineElementProvider.class)
+public class ShowEncodingAction extends AbstractAction implements StatusLineElementProvider {
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -70,8 +67,7 @@ public class ShowEncodingAction extends AbstractAction implements Presenter.Tool
     }
 
     @Override
-    public Component getToolbarPresenter() {
+    public Component getStatusLineElement() {
         return new EncodingPanel();
     }
-
 }
