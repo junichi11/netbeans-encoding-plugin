@@ -1,6 +1,7 @@
 package com.junichi11.netbeans.modules.encoding.actions;
 
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import com.junichi11.netbeans.modules.encoding.ui.EncodingJFileChooser;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,17 +41,15 @@ public final class SaveInEncoding extends CookieAction {
         if (f == null) {
             f = FileUtil.normalizeFile(new File(new File(System.getProperty("user.name")), fo.getNameExt()));
         }
-        final JFileChooser chooser = new JFileChooser();
+        final EncodingJFileChooser chooser = new EncodingJFileChooser();
         chooser.setCurrentDirectory(null);
         chooser.setDialogTitle(NbBundle.getMessage(OpenInEncoding.class, "TXT_SaveFile"));
         chooser.setApproveButtonText(NbBundle.getMessage(OpenInEncoding.class, "CTL_Save"));
         chooser.setApproveButtonMnemonic(NbBundle.getMessage(OpenInEncoding.class, "MNE_Save").charAt(0));
         chooser.setSelectedFile(f);
-        final EncodingAccessories acc = new EncodingAccessories();
-        acc.setEncoding(null); //Always suggest the default encoding
-        chooser.setAccessory(acc);
+        chooser.setEncoding(null); //Always suggest the default encoding
         if (chooser.showSaveDialog(WindowManager.getDefault().getMainWindow()) == JFileChooser.APPROVE_OPTION) {
-            final Charset charset = acc.getEncoding();
+            final Charset charset = chooser.getEncoding();
             final String encodingName = (charset == null ? null : charset.name());
             OpenInEncoding.lastFolder = chooser.getCurrentDirectory();
             final File file = FileUtil.normalizeFile(chooser.getSelectedFile());
