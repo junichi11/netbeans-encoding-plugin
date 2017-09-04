@@ -9,11 +9,9 @@ This plugin opens/saves a file with a specified encoding.
 
 File > Open/Save in Encoding...
 
-## Show encoding on Toolbar
-Current file encoding will be shown on Toolbar. If you want to change encoding, Please select specific encoding.
+## Show encoding on status line
+Current file encoding will be shown on status line. If you want to change encoding, Please click the encoding label.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
-
-If you don't want to show it, uncheck `View > Toolbar > Encoding`.
 
 ## Translations
 
