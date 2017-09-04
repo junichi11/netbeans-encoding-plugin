@@ -3,7 +3,7 @@ This plugin opens/saves a file with a specified encoding.
 
 ## Requirements
 
-- NetBeans7.4+
+- NetBeans8.2+
 
 ## Open/Save in Encoding
 
@@ -12,6 +12,8 @@ File > Open/Save in Encoding...
 ## Show encoding on status line
 Current file encoding will be shown on status line. If you want to change encoding, Please click the encoding label.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
+
+![screenshot](screenshots/nb-encoding-statusline.png)
 
 ## Translations
 
