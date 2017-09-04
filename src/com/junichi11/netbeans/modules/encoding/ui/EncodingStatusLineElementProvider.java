@@ -126,7 +126,8 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                     return;
                 }
 
-                encodingList.addListSelectionListener(new EncodingListSelectionListener(encodingList, popup));
+                final EncodingListSelectionListener encodingListSelectionListener = new EncodingListSelectionListener(encodingList, popup);
+                encodingList.addListSelectionListener(encodingListSelectionListener);
 
                 // hide popup
                 final AWTEventListener eventListener = new AWTEventListener() {
@@ -137,6 +138,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                             if (source != encodingScrollPane.getVerticalScrollBar()) {
                                 popup.hide();
                                 Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+                                encodingList.removeListSelectionListener(encodingListSelectionListener);
                             }
                         }
                     }
