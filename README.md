@@ -3,7 +3,7 @@ This plugin opens/saves a file with a specified encoding.
 
 ## Requirements
 
-- NetBeans7.4+
+- NetBeans8.2+
 
 ## Open/Save in Encoding
 
