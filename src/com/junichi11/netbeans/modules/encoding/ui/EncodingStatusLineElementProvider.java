@@ -96,12 +96,15 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
     private static final Collection<? extends Charset> CHARSETS = Charset.availableCharsets().values();
 
     static {
+        // icon position: right
         ENCODING_LABEL.setHorizontalTextPosition(SwingConstants.LEFT);
+
         // add listeners
         EditorRegistry.addPropertyChangeListener((PropertyChangeListener) ENCODING_LABEL);
         ENCODING_LABEL.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                // create popup list
                 DefaultListModel<String> encodingListModel = new DefaultListModel<>();
                 encodingListModel.addElement(""); // NOI18N
                 CHARSETS.forEach((charset) -> {
@@ -115,17 +118,16 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                     return;
                 }
 
+                // set current encoding
                 Charset charset = EncodingFinder.find(fileObject);
                 encodingList.setSelectedValue(charset.name(), true);
 
-                Point labelStart = ENCODING_LABEL.getLocationOnScreen();
-                int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingScrollPane.getPreferredSize().width);
-                int y = labelStart.y - encodingScrollPane.getPreferredSize().height;
-                final Popup popup = PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingScrollPane, x, y);
+                Popup popup = getPopup(encodingScrollPane);
                 if (popup == null) {
                     return;
                 }
 
+                // add listener
                 final EncodingListSelectionListener encodingListSelectionListener = new EncodingListSelectionListener(encodingList, popup);
                 encodingList.addListSelectionListener(encodingListSelectionListener);
 
@@ -146,6 +148,13 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
 
                 popup.show();
+            }
+
+            private Popup getPopup(final JScrollPane encodingScrollPane) throws IllegalArgumentException {
+                Point labelStart = ENCODING_LABEL.getLocationOnScreen();
+                int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingScrollPane.getPreferredSize().width);
+                int y = labelStart.y - encodingScrollPane.getPreferredSize().height;
+                return PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingScrollPane, x, y);
             }
 
         });
@@ -229,8 +238,8 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             FileObject fileObject = getfocusedFileObject();
             if (fileObject != null) {
                 Charset encoding = getEncoding(fileObject);
-                this.setIcon(ImageUtilities.loadImageIcon(ENCODING_LIST_ICON_16, false));
                 this.setText(String.format(" %s ", encoding.displayName())); // NOI18N
+                this.setIcon(ImageUtilities.loadImageIcon(ENCODING_LIST_ICON_16, false));
                 return;
             }
             this.setText("    "); // NOI18N
@@ -313,6 +322,5 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 oc.open();
             }
         }
-
     }
 }
