@@ -13,6 +13,8 @@ File > Open/Save in Encoding...
 Current file encoding will be shown on status line. If you want to change encoding, Please click the encoding label.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
 
+![screenshot](screenshots/nb-encoding-statusline.png)
+
 ## Translations
 
 - [README_es.md](README_es.md) - Español ([@javatlacati](https://github.com/javatlacati))
