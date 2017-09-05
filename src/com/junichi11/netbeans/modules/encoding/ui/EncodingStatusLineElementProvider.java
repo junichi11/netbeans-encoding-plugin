@@ -83,6 +83,7 @@ import org.openide.loaders.DataObject;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.windows.WindowManager;
 
 /**
  *
@@ -113,6 +114,11 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 final JList<String> encodingList = new JList<>(encodingListModel);
                 final JScrollPane encodingScrollPane = new JScrollPane(encodingList);
 
+                // #17 set preferred size
+                int preferredWidth = encodingScrollPane.getPreferredSize().width;
+                int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
+                encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+
                 FileObject fileObject = getfocusedFileObject();
                 if (fileObject == null) {
                     return;
@@ -140,7 +146,9 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                             if (source != encodingScrollPane.getVerticalScrollBar()) {
                                 popup.hide();
                                 Toolkit.getDefaultToolkit().removeAWTEventListener(this);
-                                encodingList.removeListSelectionListener(encodingListSelectionListener);
+                                if (source != encodingList) {
+                                    encodingList.removeListSelectionListener(encodingListSelectionListener);
+                                }
                             }
                         }
                     }
