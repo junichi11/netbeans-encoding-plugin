@@ -15,6 +15,11 @@ Current file encoding will be shown on status line. If you want to change encodi
 
 ![screenshot](screenshots/nb-encoding-statusline.png)
 
+## Downloads
+
+- https://github.com/junichi11/netbeans-encoding-plugin/releases
+- http://plugins.netbeans.org/plugin/60487/encoding-support
+
 ## Translations
 
 - [README_es.md](README_es.md) - Español ([@javatlacati](https://github.com/javatlacati))
