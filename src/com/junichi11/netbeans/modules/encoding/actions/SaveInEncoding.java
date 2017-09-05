@@ -32,6 +32,8 @@ import org.openide.windows.WindowManager;
 @ActionReference(path = "Menu/File", position = 1725)
 public final class SaveInEncoding extends CookieAction {
 
+    private static final long serialVersionUID = 546963176836634822L;
+
     @Override
     protected void performAction(Node[] activatedNodes) {
         final DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
@@ -68,24 +70,18 @@ public final class SaveInEncoding extends CookieAction {
                     //Todo: Perf, don't load whole data into mem.
                     final StringBuilder sb = new StringBuilder();
                     final char[] buffer = new char[512];
-                    final Reader in = new InputStreamReader(fo.getInputStream(), FileEncodingQuery.getEncoding(fo));
-                    try {
+                    try (Reader in = new InputStreamReader(fo.getInputStream(), FileEncodingQuery.getEncoding(fo))) {
                         int len;
                         while ((len = in.read(buffer)) > 0) {
                             sb.append(buffer, 0, len);
                         }
-                    } finally {
-                        in.close();
                     }
                     fo = FileUtil.createData(file);
                     fo.setAttribute(OpenInEncodingQueryImpl.ENCODING, encodingName);
                     final FileLock lock = fo.lock();
                     try {
-                        final Writer out = new OutputStreamWriter(fo.getOutputStream(lock), FileEncodingQuery.getEncoding(fo));
-                        try {
+                        try (Writer out = new OutputStreamWriter(fo.getOutputStream(lock), FileEncodingQuery.getEncoding(fo))) {
                             out.write(sb.toString());
-                        } finally {
-                            out.close();
                         }
                     } finally {
                         lock.releaseLock();
