@@ -102,79 +102,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         // add listeners
         EditorRegistry.addPropertyChangeListener((PropertyChangeListener) ENCODING_LABEL);
-        ENCODING_LABEL.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                // create popup components
-                final JList<String> encodingList = createPopupList();
-                final JScrollPane encodingScrollPane = createPopupScrollPane(encodingList);
-
-                FileObject fileObject = getfocusedFileObject();
-                if (fileObject == null) {
-                    return;
-                }
-
-                // set current encoding
-                Charset charset = EncodingFinder.find(fileObject);
-                encodingList.setSelectedValue(charset.name(), true);
-
-                Popup popup = getPopup(encodingScrollPane);
-                if (popup == null) {
-                    return;
-                }
-
-                // add listener
-                final EncodingListSelectionListener encodingListSelectionListener = new EncodingListSelectionListener(encodingList, popup);
-                encodingList.addListSelectionListener(encodingListSelectionListener);
-
-                // hide popup
-                final AWTEventListener eventListener = new AWTEventListener() {
-                    @Override
-                    public void eventDispatched(AWTEvent event) {
-                        if (event instanceof MouseEvent && ((MouseEvent) event).getClickCount() > 0) {
-                            Object source = event.getSource();
-                            if (source != encodingScrollPane.getVerticalScrollBar()) {
-                                popup.hide();
-                                Toolkit.getDefaultToolkit().removeAWTEventListener(this);
-                                if (source != encodingList) {
-                                    encodingList.removeListSelectionListener(encodingListSelectionListener);
-                                }
-                            }
-                        }
-                    }
-                };
-                Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
-
-                popup.show();
-            }
-
-            private JList<String> createPopupList() {
-                DefaultListModel<String> encodingListModel = new DefaultListModel<>();
-                encodingListModel.addElement(""); // NOI18N
-                CHARSETS.forEach((charset) -> {
-                    encodingListModel.addElement(charset.name());
-                });
-                return new JList<>(encodingListModel);
-            }
-
-            private JScrollPane createPopupScrollPane(JList<String> popupList) {
-                JScrollPane encodingScrollPane = new JScrollPane(popupList);
-
-                // #17 set preferred size
-                int preferredWidth = encodingScrollPane.getPreferredSize().width;
-                int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
-                encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-                return encodingScrollPane;
-            }
-
-            private Popup getPopup(final JScrollPane encodingScrollPane) throws IllegalArgumentException {
-                Point labelStart = ENCODING_LABEL.getLocationOnScreen();
-                int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingScrollPane.getPreferredSize().width);
-                int y = labelStart.y - encodingScrollPane.getPreferredSize().height;
-                return PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingScrollPane, x, y);
-            }
-
-        });
+        ENCODING_LABEL.addMouseListener(new EncodingLabelMouseAdapter());
     }
 
     @Override
@@ -338,6 +266,83 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             if (oc != null) {
                 oc.open();
             }
+        }
+    }
+
+    private static class EncodingLabelMouseAdapter extends MouseAdapter {
+
+        public EncodingLabelMouseAdapter() {
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            // create popup components
+            final JList<String> encodingList = createPopupList();
+            final JScrollPane encodingScrollPane = createPopupScrollPane(encodingList);
+
+            FileObject fileObject = getfocusedFileObject();
+            if (fileObject == null) {
+                return;
+            }
+
+            // set current encoding
+            Charset charset = EncodingFinder.find(fileObject);
+            encodingList.setSelectedValue(charset.name(), true);
+
+            Popup popup = getPopup(encodingScrollPane);
+            if (popup == null) {
+                return;
+            }
+
+            // add listener
+            final EncodingListSelectionListener encodingListSelectionListener = new EncodingListSelectionListener(encodingList, popup);
+            encodingList.addListSelectionListener(encodingListSelectionListener);
+
+            // hide popup
+            final AWTEventListener eventListener = new AWTEventListener() {
+                @Override
+                public void eventDispatched(AWTEvent event) {
+                    if (event instanceof MouseEvent && ((MouseEvent) event).getClickCount() > 0) {
+                        Object source = event.getSource();
+                        if (source != encodingScrollPane.getVerticalScrollBar()) {
+                            popup.hide();
+                            Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+                            if (source != encodingList) {
+                                encodingList.removeListSelectionListener(encodingListSelectionListener);
+                            }
+                        }
+                    }
+                }
+            };
+            Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
+
+            popup.show();
+        }
+
+        private JList<String> createPopupList() {
+            DefaultListModel<String> encodingListModel = new DefaultListModel<>();
+            encodingListModel.addElement(""); // NOI18N
+            CHARSETS.forEach((charset) -> {
+                encodingListModel.addElement(charset.name());
+            });
+            return new JList<>(encodingListModel);
+        }
+
+        private JScrollPane createPopupScrollPane(JList<String> popupList) {
+            JScrollPane encodingScrollPane = new JScrollPane(popupList);
+
+            // #17 set preferred size
+            int preferredWidth = encodingScrollPane.getPreferredSize().width;
+            int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
+            encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+            return encodingScrollPane;
+        }
+
+        private Popup getPopup(final JScrollPane encodingScrollPane) throws IllegalArgumentException {
+            Point labelStart = ENCODING_LABEL.getLocationOnScreen();
+            int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingScrollPane.getPreferredSize().width);
+            int y = labelStart.y - encodingScrollPane.getPreferredSize().height;
+            return PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingScrollPane, x, y);
         }
     }
 }
