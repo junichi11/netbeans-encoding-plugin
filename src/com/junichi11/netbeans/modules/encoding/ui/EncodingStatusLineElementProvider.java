@@ -105,19 +105,9 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         ENCODING_LABEL.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // create popup list
-                DefaultListModel<String> encodingListModel = new DefaultListModel<>();
-                encodingListModel.addElement(""); // NOI18N
-                CHARSETS.forEach((charset) -> {
-                    encodingListModel.addElement(charset.name());
-                });
-                final JList<String> encodingList = new JList<>(encodingListModel);
-                final JScrollPane encodingScrollPane = new JScrollPane(encodingList);
-
-                // #17 set preferred size
-                int preferredWidth = encodingScrollPane.getPreferredSize().width;
-                int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
-                encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+                // create popup components
+                final JList<String> encodingList = createPopupList();
+                final JScrollPane encodingScrollPane = createPopupScrollPane(encodingList);
 
                 FileObject fileObject = getfocusedFileObject();
                 if (fileObject == null) {
@@ -156,6 +146,25 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
 
                 popup.show();
+            }
+
+            private JList<String> createPopupList() {
+                DefaultListModel<String> encodingListModel = new DefaultListModel<>();
+                encodingListModel.addElement(""); // NOI18N
+                CHARSETS.forEach((charset) -> {
+                    encodingListModel.addElement(charset.name());
+                });
+                return new JList<>(encodingListModel);
+            }
+
+            private JScrollPane createPopupScrollPane(JList<String> popupList) {
+                JScrollPane encodingScrollPane = new JScrollPane(popupList);
+
+                // #17 set preferred size
+                int preferredWidth = encodingScrollPane.getPreferredSize().width;
+                int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
+                encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+                return encodingScrollPane;
             }
 
             private Popup getPopup(final JScrollPane encodingScrollPane) throws IllegalArgumentException {
