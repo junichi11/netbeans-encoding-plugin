@@ -48,6 +48,7 @@ import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -302,7 +303,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             final AWTEventListener eventListener = new AWTEventListener() {
                 @Override
                 public void eventDispatched(AWTEvent event) {
-                    if (event instanceof MouseEvent && ((MouseEvent) event).getClickCount() > 0) {
+                    if (isHidable(event)) {
                         Object source = event.getSource();
                         if (source != encodingScrollPane.getVerticalScrollBar()) {
                             popup.hide();
@@ -313,8 +314,14 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                         }
                     }
                 }
+
+                private boolean isHidable(AWTEvent event) {
+                    return (event instanceof MouseEvent && ((MouseEvent) event).getClickCount() > 0)
+                            || (event instanceof KeyEvent && ((KeyEvent) event).getKeyCode() == KeyEvent.VK_ESCAPE);
+                }
+
             };
-            Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
+            Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
 
             popup.show();
         }
