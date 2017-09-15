@@ -9,11 +9,21 @@ This plugin opens/saves a file with a specified encoding.
 
 File > Open/Save in Encoding...
 
-## Show encoding on status line
-Current file encoding will be shown on status line. If you want to change encoding, Please click the encoding label.
+## Show encoding on the status line
+Current file encoding will be shown on the status line. If you want to change encoding, Please click the encoding label.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
 
 ![screenshot](screenshots/nb-encoding-statusline.png)
+
+## Search encodings
+
+To search encodings, you can type something when the encoding list is shown.
+You can use <kbd>↑</kbd> and <kbd>↓</kbd>key to change the selected encoding.
+You can use <kbd>Enter</kbd> key to decide the encoding.
+
+## Hide the encoding list
+
+Just type <kbd>ESC</kbd> key or click other than the encoding list.
 
 ## Downloads
 

@@ -54,36 +54,23 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
-import org.netbeans.modules.editor.NbEditorUtilities;
 import org.openide.awt.StatusLineElementProvider;
-import org.openide.cookies.CloseCookie;
-import org.openide.cookies.EditorCookie;
-import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
-import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.windows.WindowManager;
 
 /**
  *
@@ -94,7 +81,8 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
     private static final JLabel ENCODING_LABEL = new EncodingLabel();
     private static final Component COMPONENT = panelWithSeparator(ENCODING_LABEL);
-    private static final Collection<? extends Charset> CHARSETS = Charset.availableCharsets().values();
+    private static final Logger LOGGER = Logger.getLogger(EncodingStatusLineElementProvider.class.getName());
+    private static volatile boolean SHOWING_POPUP;
 
     static {
         // icon position: right
@@ -102,70 +90,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         // add listeners
         EditorRegistry.addPropertyChangeListener((PropertyChangeListener) ENCODING_LABEL);
-        ENCODING_LABEL.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                // create popup list
-                DefaultListModel<String> encodingListModel = new DefaultListModel<>();
-                encodingListModel.addElement(""); // NOI18N
-                CHARSETS.forEach((charset) -> {
-                    encodingListModel.addElement(charset.name());
-                });
-                final JList<String> encodingList = new JList<>(encodingListModel);
-                final JScrollPane encodingScrollPane = new JScrollPane(encodingList);
-
-                // #17 set preferred size
-                int preferredWidth = encodingScrollPane.getPreferredSize().width;
-                int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
-                encodingScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-
-                FileObject fileObject = getfocusedFileObject();
-                if (fileObject == null) {
-                    return;
-                }
-
-                // set current encoding
-                Charset charset = EncodingFinder.find(fileObject);
-                encodingList.setSelectedValue(charset.name(), true);
-
-                Popup popup = getPopup(encodingScrollPane);
-                if (popup == null) {
-                    return;
-                }
-
-                // add listener
-                final EncodingListSelectionListener encodingListSelectionListener = new EncodingListSelectionListener(encodingList, popup);
-                encodingList.addListSelectionListener(encodingListSelectionListener);
-
-                // hide popup
-                final AWTEventListener eventListener = new AWTEventListener() {
-                    @Override
-                    public void eventDispatched(AWTEvent event) {
-                        if (event instanceof MouseEvent && ((MouseEvent) event).getClickCount() > 0) {
-                            Object source = event.getSource();
-                            if (source != encodingScrollPane.getVerticalScrollBar()) {
-                                popup.hide();
-                                Toolkit.getDefaultToolkit().removeAWTEventListener(this);
-                                if (source != encodingList) {
-                                    encodingList.removeListSelectionListener(encodingListSelectionListener);
-                                }
-                            }
-                        }
-                    }
-                };
-                Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK);
-
-                popup.show();
-            }
-
-            private Popup getPopup(final JScrollPane encodingScrollPane) throws IllegalArgumentException {
-                Point labelStart = ENCODING_LABEL.getLocationOnScreen();
-                int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingScrollPane.getPreferredSize().width);
-                int y = labelStart.y - encodingScrollPane.getPreferredSize().height;
-                return PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingScrollPane, x, y);
-            }
-
-        });
+        ENCODING_LABEL.addMouseListener(new EncodingLabelMouseAdapter());
     }
 
     @Override
@@ -198,19 +123,45 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         return panel;
     }
 
-    @CheckForNull
-    private static FileObject getfocusedFileObject() {
-        JTextComponent component = EditorRegistry.focusedComponent();
-        if (component == null) {
-            return null;
+    /**
+     * Change the encoding.
+     * <b>NOTE:</b>The file is reopened.
+     *
+     * @param encodingPanel EncodingPanel
+     */
+    private static void changeEncoding(EncodingPanel encodingPanel) {
+        FileObject fileObject = UiUtils.getLastFocusedFileObject();
+        if (fileObject == null) {
+            return;
         }
 
-        Document document = component.getDocument();
-        if (document == null) {
-            return null;
+        // same encoding?
+        Charset encoding = EncodingFinder.find(fileObject);
+        String currentEncoding = encoding.name();
+        String selectedEncoding = encodingPanel.getSelectedEncoding();
+        if (selectedEncoding == null) {
+            UiUtils.requestFocusLastFocusedComponent();
+            return;
         }
 
-        return NbEditorUtilities.getFileObject(document);
+        // #1 encoding is empty when snippet is inserted with palette
+        if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+            UiUtils.requestFocusLastFocusedComponent();
+            return;
+        }
+
+        // set encoding to attribute, reopen file
+        try {
+            fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
+            final DataObject dobj = DataObject.find(fileObject);
+
+            UiUtils.reopen(dobj);
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     //~ inner classes
@@ -243,7 +194,12 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         private void updateEncoding() {
             assert EventQueue.isDispatchThread();
-            FileObject fileObject = getfocusedFileObject();
+            FileObject fileObject;
+            if (SHOWING_POPUP) {
+                fileObject = UiUtils.getLastFocusedFileObject();
+            } else {
+                fileObject = UiUtils.getFocusedFileObject();
+            }
             if (fileObject != null) {
                 Charset encoding = getEncoding(fileObject);
                 this.setText(String.format(" %s ", encoding.displayName())); // NOI18N
@@ -260,75 +216,108 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
     }
 
-    private static class EncodingListSelectionListener implements ListSelectionListener {
+    private static class EncodingLabelMouseAdapter extends MouseAdapter {
 
-        private final JList<String> encodingList;
-        private final Popup popup;
-
-        public EncodingListSelectionListener(JList<String> encodingList, Popup popup) {
-            this.encodingList = encodingList;
-            this.popup = popup;
+        public EncodingLabelMouseAdapter() {
         }
 
         @Override
-        public void valueChanged(ListSelectionEvent e) {
-            popup.hide();
-            encodingList.removeListSelectionListener(this);
-
-            FileObject fileObject = getfocusedFileObject();
+        public void mouseClicked(MouseEvent e) {
+            FileObject fileObject = UiUtils.getFocusedFileObject();
             if (fileObject == null) {
                 return;
             }
 
-            // same encoding?
-            Charset encoding = EncodingFinder.find(fileObject);
-            String currentEncoding = encoding.name();
-            String selectedEncoding = encodingList.getSelectedValue();
-            // #1 encoding is empty when snippet is inserted with palette
-            if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+            // set current encoding
+            Charset charset = EncodingFinder.find(fileObject);
+            final EncodingPanel encodingPanel = new EncodingPanel(charset);
+            Popup popup = getPopup(encodingPanel);
+            if (popup == null) {
                 return;
             }
 
-            // set encoding to attribute, reopen file
-            try {
-                fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
-                final DataObject dobj = DataObject.find(fileObject);
+            // add listener
+            final EncodingListMouseAdapter encodingListMouseAdapter = new EncodingListMouseAdapter(encodingPanel, popup);
+            encodingPanel.addEncodingListMouseListener(encodingListMouseAdapter);
 
-                reopen(dobj);
+            // hide popup
+            final AWTEventListener eventListener = new AWTEventListener() {
+                @Override
+                public void eventDispatched(AWTEvent event) {
+                    if (isHidable(event)) {
+                        Object source = event.getSource();
+                        popup.hide();
+                        SHOWING_POPUP = false;
+                        Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+                        encodingPanel.shutdown();
 
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+                        if (!UiUtils.isMouseClicked(event)
+                                || !encodingPanel.isEncodingList(source)) {
+                            encodingPanel.removeEncodingListMouseListener(encodingListMouseAdapter);
+                        }
+
+                        if (UiUtils.isEscKey(event) || UiUtils.isEnterKey(event)) {
+                            if (encodingPanel.isEncodingFilterField(source)
+                                    || encodingPanel.isEncodingList(source)) {
+                                UiUtils.requestFocusLastFocusedComponent();
+                            }
+                        }
+
+                        if (!encodingPanel.isEncodingList(source)
+                                && !encodingPanel.isEncodingFilterField(source)) {
+                            return;
+                        }
+
+                        if (UiUtils.isEnterKey(event)) {
+                            changeEncoding(encodingPanel);
+                        }
+                    }
+                }
+
+                private boolean isHidable(AWTEvent event) {
+                    Object source = event.getSource();
+                    if (UiUtils.isMouseClicked(event)
+                            && !UiUtils.isEncodingPanelComponent(source)
+                            && source != ENCODING_LABEL) {
+                        return true;
+
+                    }
+                    return UiUtils.isEscKey(event) || UiUtils.isEnterKey(event);
+                }
+
+            };
+            Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
+
+            popup.show();
+            SHOWING_POPUP = true;
+            encodingPanel.requrestForcusEncodingList();
         }
 
-        private void reopen(DataObject dobj) throws InterruptedException {
-            close(dobj);
+        private Popup getPopup(final JPanel encodingPanel) throws IllegalArgumentException {
+            Point labelStart = ENCODING_LABEL.getLocationOnScreen();
+            int x = Math.min(labelStart.x, labelStart.x + ENCODING_LABEL.getSize().width - encodingPanel.getPreferredSize().width);
+            int y = labelStart.y - encodingPanel.getPreferredSize().height;
+            return PopupFactory.getSharedInstance().getPopup(ENCODING_LABEL, encodingPanel, x, y);
+        }
+    }
 
-            // XXX java.lang.AssertionError is occurred
-            Thread.sleep(200);
+    private static class EncodingListMouseAdapter extends MouseAdapter {
 
-            open(dobj);
+        private final EncodingPanel encodingPanel;
+        private final Popup popup;
+
+        public EncodingListMouseAdapter(EncodingPanel encodingPanel, Popup popup) {
+            this.encodingPanel = encodingPanel;
+            this.popup = popup;
         }
 
-        private void close(DataObject dobj) {
-            CloseCookie cc = dobj.getLookup().lookup(CloseCookie.class);
-            EditorCookie ec = dobj.getLookup().lookup(EditorCookie.class);
-
-            if (cc != null) {
-                cc.close();
-            }
-            if (ec != null) {
-                ec.close();
-            }
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            popup.hide();
+            SHOWING_POPUP = false;
+            encodingPanel.removeEncodingListMouseListener(this);
+            changeEncoding(encodingPanel);
         }
 
-        private void open(DataObject dobj) {
-            OpenCookie oc = dobj.getLookup().lookup(OpenCookie.class);
-            if (oc != null) {
-                oc.open();
-            }
-        }
     }
 }
