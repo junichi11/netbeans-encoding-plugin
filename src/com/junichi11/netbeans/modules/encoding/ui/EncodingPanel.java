@@ -40,6 +40,8 @@
 package com.junichi11.netbeans.modules.encoding.ui;
 
 import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
@@ -61,7 +63,9 @@ final class EncodingPanel extends JPanel {
     private static final long serialVersionUID = -7350298167289629517L;
 
     private DefaultListModel<String> encodingListModel = new DefaultListModel<>();
+    // listeners
     private KeyListener encodingFilterKeyListener = new EncodingFilterKeyListener();
+    private KeyListener encodingListKeyListener = new EncodingListKeyAdapter();
     private DocumentListener encodingFilterDocumentListener = new EncodingFilterDocumentListener();
 
     /**
@@ -76,31 +80,60 @@ final class EncodingPanel extends JPanel {
         encodingList.setSelectedValue(encoding.name(), true);
         encodingFilterTextField.getDocument().addDocumentListener(encodingFilterDocumentListener);
         encodingFilterTextField.addKeyListener(encodingFilterKeyListener);
-
+        encodingList.addKeyListener(encodingListKeyListener);
+        encodingFilterTextField.setVisible(false);
         // set Preferred size
         int preferredWidth = encodingListScrollPane.getPreferredSize().width;
-        int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 4;
+        int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
         encodingListScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
 
     }
 
+    /**
+     * Clean up listeners.
+     */
     void shutdown() {
         // remove listeners
         encodingFilterTextField.removeKeyListener(encodingFilterKeyListener);
+        encodingList.removeKeyListener(encodingListKeyListener);
         encodingFilterTextField.getDocument().removeDocumentListener(encodingFilterDocumentListener);
         encodingFilterKeyListener = null;
+        encodingListKeyListener = null;
         encodingFilterDocumentListener = null;
     }
 
-    void fireChange() {
+    /**
+     * Invoke when something is typed in the text field.
+     */
+    private void fireChange() {
+        assert EventQueue.isDispatchThread();
         encodingListModel.clear();
-        String filter = encodingFilterTextField.getText();
-        CHARSETS.stream()
-                .filter(charset -> charset.name().toLowerCase().contains(filter.toLowerCase()))
-                .forEachOrdered(charset -> encodingListModel.addElement(charset.name()));
+
+        // check all keywords separated by whitespaces
+        String filterText = encodingFilterTextField.getText();
+        String[] filters = filterText.split("\\s"); // NOI18N
+        CHARSETS.forEach(charset -> {
+            boolean addItem = true;
+            for (String filter : filters) {
+                if (!charset.name().toLowerCase().contains(filter.toLowerCase())) {
+                    addItem = false;
+                }
+            }
+            if (addItem) {
+                encodingListModel.addElement(charset.name());
+            }
+        });
+
         if (encodingListModel.size() > 0) {
             String element = encodingListModel.getElementAt(0);
             encodingList.setSelectedValue(element, true);
+        }
+
+        // show the text field
+        if (filterText.isEmpty()) {
+            encodingList.requestFocusInWindow();
+            encodingFilterTextField.setVisible(false);
+            revalidate();
         }
     }
 
@@ -135,6 +168,15 @@ final class EncodingPanel extends JPanel {
         encodingFilterTextField.requestFocusInWindow();
     }
 
+    void requrestForcusEncodingList() {
+        encodingList.requestFocusInWindow();
+    }
+
+    /**
+     * Get the selected encoding.
+     *
+     * @return the selected encoding
+     */
     public String getSelectedEncoding() {
         return encodingList.getSelectedValue();
     }
@@ -166,8 +208,8 @@ final class EncodingPanel extends JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(encodingListScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(encodingListScrollPane)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(encodingFilterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -249,6 +291,28 @@ final class EncodingPanel extends JPanel {
 
         private void processUpdate() {
             fireChange();
+        }
+    }
+
+    private class EncodingListKeyAdapter extends KeyAdapter {
+
+        public EncodingListKeyAdapter() {
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+            // XXX validate key char
+            switch (e.getKeyChar()) {
+                case '\b': // backspace no break
+                case '\u007f': // delete
+                    return;
+                default:
+                    encodingFilterTextField.setVisible(true);
+                    encodingFilterTextField.requestFocusInWindow();
+                    revalidate();
+                    encodingFilterTextField.setText(String.valueOf(e.getKeyChar()));
+                    break;
+            }
         }
     }
 }

@@ -63,7 +63,6 @@ import javax.swing.JSeparator;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
-import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
@@ -83,6 +82,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
     private static final JLabel ENCODING_LABEL = new EncodingLabel();
     private static final Component COMPONENT = panelWithSeparator(ENCODING_LABEL);
     private static final Logger LOGGER = Logger.getLogger(EncodingStatusLineElementProvider.class.getName());
+    private static volatile boolean SHOWING_POPUP;
 
     static {
         // icon position: right
@@ -123,6 +123,12 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         return panel;
     }
 
+    /**
+     * Change the encoding.
+     * <b>NOTE:</b>The file is reopened.
+     *
+     * @param encodingPanel EncodingPanel
+     */
     private static void changeEncoding(EncodingPanel encodingPanel) {
         FileObject fileObject = UiUtils.getLastFocusedFileObject();
         if (fileObject == null) {
@@ -134,11 +140,13 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         String currentEncoding = encoding.name();
         String selectedEncoding = encodingPanel.getSelectedEncoding();
         if (selectedEncoding == null) {
+            UiUtils.requestFocusLastFocusedComponent();
             return;
         }
 
         // #1 encoding is empty when snippet is inserted with palette
         if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+            UiUtils.requestFocusLastFocusedComponent();
             return;
         }
 
@@ -186,7 +194,12 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         private void updateEncoding() {
             assert EventQueue.isDispatchThread();
-            FileObject fileObject = UiUtils.getFocusedFileObject();
+            FileObject fileObject;
+            if (SHOWING_POPUP) {
+                fileObject = UiUtils.getLastFocusedFileObject();
+            } else {
+                fileObject = UiUtils.getFocusedFileObject();
+            }
             if (fileObject != null) {
                 Charset encoding = getEncoding(fileObject);
                 this.setText(String.format(" %s ", encoding.displayName())); // NOI18N
@@ -210,7 +223,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            FileObject fileObject = UiUtils.getLastFocusedFileObject();
+            FileObject fileObject = UiUtils.getFocusedFileObject();
             if (fileObject == null) {
                 return;
             }
@@ -231,9 +244,10 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             final AWTEventListener eventListener = new AWTEventListener() {
                 @Override
                 public void eventDispatched(AWTEvent event) {
-                    if (isHidable(event, encodingPanel)) {
+                    if (isHidable(event)) {
                         Object source = event.getSource();
                         popup.hide();
+                        SHOWING_POPUP = false;
                         Toolkit.getDefaultToolkit().removeAWTEventListener(this);
                         encodingPanel.shutdown();
 
@@ -242,11 +256,10 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                             encodingPanel.removeEncodingListMouseListener(encodingListMouseAdapter);
                         }
 
-                        if (UiUtils.isEscKey(event)
-                                && encodingPanel.isEncodingFilterField(source)) {
-                            JTextComponent lastFocusedComponent = EditorRegistry.lastFocusedComponent();
-                            if (lastFocusedComponent != null) {
-                                lastFocusedComponent.requestFocusInWindow();
+                        if (UiUtils.isEscKey(event) || UiUtils.isEnterKey(event)) {
+                            if (encodingPanel.isEncodingFilterField(source)
+                                    || encodingPanel.isEncodingList(source)) {
+                                UiUtils.requestFocusLastFocusedComponent();
                             }
                         }
 
@@ -261,12 +274,10 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                     }
                 }
 
-                private boolean isHidable(AWTEvent event, EncodingPanel panel) {
+                private boolean isHidable(AWTEvent event) {
                     Object source = event.getSource();
                     if (UiUtils.isMouseClicked(event)
-                            && !panel.isEncodingListScrollBar(source)
-                            && !panel.isEncodingList(source)
-                            && !panel.isEncodingFilterField(source)
+                            && !UiUtils.isEncodingPanelComponent(source)
                             && source != ENCODING_LABEL) {
                         return true;
 
@@ -278,6 +289,8 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             Toolkit.getDefaultToolkit().addAWTEventListener(eventListener, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
 
             popup.show();
+            SHOWING_POPUP = true;
+            encodingPanel.requrestForcusEncodingList();
         }
 
         private Popup getPopup(final JPanel encodingPanel) throws IllegalArgumentException {
@@ -301,6 +314,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         @Override
         public void mouseClicked(MouseEvent e) {
             popup.hide();
+            SHOWING_POPUP = false;
             encodingPanel.removeEncodingListMouseListener(this);
             changeEncoding(encodingPanel);
         }

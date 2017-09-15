@@ -40,8 +40,11 @@
 package com.junichi11.netbeans.modules.encoding.ui;
 
 import java.awt.AWTEvent;
+import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.CheckForNull;
@@ -132,4 +135,29 @@ public final class UiUtils {
         return event instanceof KeyEvent && ((KeyEvent) event).getKeyCode() == KeyEvent.VK_ENTER;
     }
 
+    /**
+     * Focus the last focused editor pane.
+     */
+    public static void requestFocusLastFocusedComponent() {
+        JTextComponent lastFocusedComponent = EditorRegistry.lastFocusedComponent();
+        if (lastFocusedComponent != null) {
+            lastFocusedComponent.requestFocusInWindow();
+        }
+    }
+
+    /**
+     * Check whether the object is a component of EncodingPanal class.
+     *
+     * @param object the object
+     * @return {@code true} if the object is a component of EncodingPanel class,
+     * otherwise {@code false}
+     */
+    public static boolean isEncodingPanelComponent(Object object) {
+        if (object instanceof JComponent) {
+            JComponent component = (JComponent) object;
+            Container parent = SwingUtilities.getAncestorOfClass(EncodingPanel.class, component);
+            return parent != null;
+        }
+        return false;
+    }
 }
