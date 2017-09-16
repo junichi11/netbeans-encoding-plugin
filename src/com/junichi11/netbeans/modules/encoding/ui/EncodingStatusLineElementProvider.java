@@ -277,7 +277,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 private boolean isHidable(AWTEvent event) {
                     Object source = event.getSource();
                     if (UiUtils.isMouseClicked(event)
-                            && !UiUtils.isEncodingPanelComponent(source)
+                            && !UiUtils.isComponentOfClass(EncodingPanel.class, source)
                             && source != ENCODING_LABEL) {
                         return true;
 

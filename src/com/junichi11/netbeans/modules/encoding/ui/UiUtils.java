@@ -146,16 +146,16 @@ public final class UiUtils {
     }
 
     /**
-     * Check whether the object is a component of EncodingPanal class.
+     * Check whether the object is a component of the specific class.
      *
      * @param object the object
-     * @return {@code true} if the object is a component of EncodingPanel class,
+     * @return {@code true} if the object is a component of the specific class,
      * otherwise {@code false}
      */
-    public static boolean isEncodingPanelComponent(Object object) {
+    public static boolean isComponentOfClass(Class<?> clazz, Object object) {
         if (object instanceof JComponent) {
             JComponent component = (JComponent) object;
-            Container parent = SwingUtilities.getAncestorOfClass(EncodingPanel.class, component);
+            Container parent = SwingUtilities.getAncestorOfClass(clazz, component);
             return parent != null;
         }
         return false;
