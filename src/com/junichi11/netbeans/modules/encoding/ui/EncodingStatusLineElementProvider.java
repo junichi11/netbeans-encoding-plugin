@@ -66,10 +66,13 @@ import javax.swing.SwingConstants;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
+import org.openide.*;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -129,10 +132,23 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
      *
      * @param encodingPanel EncodingPanel
      */
+    @NbBundle.Messages("EncodingStatusLineElementProvider.message.modified.file=Please save the file once.")
     private static void changeEncoding(EncodingPanel encodingPanel) {
         FileObject fileObject = UiUtils.getLastFocusedFileObject();
         if (fileObject == null) {
             return;
+        }
+
+        // check whether the file is modified
+        try {
+            DataObject dataObject = DataObject.find(fileObject);
+            if (dataObject.isModified()) {
+                UiUtils.requestFocusLastFocusedComponent();
+                UiUtils.showErrorMessage(Bundle.EncodingStatusLineElementProvider_message_modified_file());
+                return;
+            }
+        } catch (DataObjectNotFoundException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
         // same encoding?

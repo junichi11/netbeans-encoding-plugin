@@ -50,6 +50,8 @@ import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.modules.editor.NbEditorUtilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.cookies.CloseCookie;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.OpenCookie;
@@ -159,5 +161,22 @@ public final class UiUtils {
             return parent != null;
         }
         return false;
+    }
+
+    /**
+     * Show the error message.
+     *
+     * @param message the error message
+     */
+    public static void showErrorMessage(String message) {
+        showMessage(message, NotifyDescriptor.ERROR_MESSAGE);
+    }
+
+    private static void showMessage(String message, int messageType) {
+        NotifyDescriptor descriptor = new NotifyDescriptor.Message(
+                message,
+                messageType
+        );
+        DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 }
