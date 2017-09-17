@@ -66,7 +66,6 @@ import javax.swing.SwingConstants;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
-import org.openide.*;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
