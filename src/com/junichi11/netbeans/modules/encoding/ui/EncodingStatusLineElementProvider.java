@@ -130,10 +130,16 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
      * Change the encoding.
      * <b>NOTE:</b>The file is reopened.
      *
-     * @param encodingPanel EncodingPanel
+     * @param selectedEncoding the selected encoding
      */
     @NbBundle.Messages("EncodingStatusLineElementProvider.message.modified.file=Please save the file once.")
-    private static void changeEncoding(EncodingPanel encodingPanel) {
+    private static void changeEncoding(String selectedEncoding) {
+        if (selectedEncoding == null) {
+            UiUtils.requestFocusLastFocusedComponent();
+            LOGGER.log(Level.WARNING, "The selected encoding is null."); // NOI18N
+            return;
+        }
+
         FileObject fileObject = UiUtils.getLastFocusedFileObject();
         if (fileObject == null) {
             return;
@@ -154,11 +160,6 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         // same encoding?
         Charset encoding = EncodingFinder.find(fileObject);
         String currentEncoding = encoding.name();
-        String selectedEncoding = encodingPanel.getSelectedEncoding();
-        if (selectedEncoding == null) {
-            UiUtils.requestFocusLastFocusedComponent();
-            return;
-        }
 
         // #1 encoding is empty when snippet is inserted with palette
         if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
@@ -285,7 +286,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                         }
 
                         if (UiUtils.isEnterKey(event)) {
-                            changeEncoding(encodingPanel);
+                            changeEncoding(encodingPanel.getSelectedEncoding());
                         }
                     }
                 }
@@ -332,7 +333,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             popup.hide();
             SHOWING_POPUP = false;
             encodingPanel.removeEncodingListMouseListener(this);
-            changeEncoding(encodingPanel);
+            changeEncoding(encodingPanel.getSelectedEncoding());
         }
 
     }
