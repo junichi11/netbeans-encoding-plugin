@@ -50,6 +50,8 @@ import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.modules.editor.NbEditorUtilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.cookies.CloseCookie;
 import org.openide.cookies.EditorCookie;
 import org.openide.cookies.OpenCookie;
@@ -146,18 +148,35 @@ public final class UiUtils {
     }
 
     /**
-     * Check whether the object is a component of EncodingPanal class.
+     * Check whether the object is a component of the specific class.
      *
      * @param object the object
-     * @return {@code true} if the object is a component of EncodingPanel class,
+     * @return {@code true} if the object is a component of the specific class,
      * otherwise {@code false}
      */
-    public static boolean isEncodingPanelComponent(Object object) {
+    public static boolean isComponentOfClass(Class<?> clazz, Object object) {
         if (object instanceof JComponent) {
             JComponent component = (JComponent) object;
-            Container parent = SwingUtilities.getAncestorOfClass(EncodingPanel.class, component);
+            Container parent = SwingUtilities.getAncestorOfClass(clazz, component);
             return parent != null;
         }
         return false;
+    }
+
+    /**
+     * Show the error message.
+     *
+     * @param message the error message
+     */
+    public static void showErrorMessage(String message) {
+        showMessage(message, NotifyDescriptor.ERROR_MESSAGE);
+    }
+
+    private static void showMessage(String message, int messageType) {
+        NotifyDescriptor descriptor = new NotifyDescriptor.Message(
+                message,
+                messageType
+        );
+        DialogDisplayer.getDefault().notifyLater(descriptor);
     }
 }

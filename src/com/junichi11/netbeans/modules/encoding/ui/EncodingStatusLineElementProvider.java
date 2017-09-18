@@ -69,7 +69,9 @@ import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -127,22 +129,36 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
      * Change the encoding.
      * <b>NOTE:</b>The file is reopened.
      *
-     * @param encodingPanel EncodingPanel
+     * @param selectedEncoding the selected encoding
      */
-    private static void changeEncoding(EncodingPanel encodingPanel) {
+    @NbBundle.Messages("EncodingStatusLineElementProvider.message.modified.file=Please save the file once.")
+    private static void changeEncoding(String selectedEncoding) {
+        if (selectedEncoding == null) {
+            UiUtils.requestFocusLastFocusedComponent();
+            LOGGER.log(Level.WARNING, "The selected encoding is null."); // NOI18N
+            return;
+        }
+
         FileObject fileObject = UiUtils.getLastFocusedFileObject();
         if (fileObject == null) {
             return;
         }
 
+        // check whether the file is modified
+        try {
+            DataObject dataObject = DataObject.find(fileObject);
+            if (dataObject.isModified()) {
+                UiUtils.requestFocusLastFocusedComponent();
+                UiUtils.showErrorMessage(Bundle.EncodingStatusLineElementProvider_message_modified_file());
+                return;
+            }
+        } catch (DataObjectNotFoundException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
         // same encoding?
         Charset encoding = EncodingFinder.find(fileObject);
         String currentEncoding = encoding.name();
-        String selectedEncoding = encodingPanel.getSelectedEncoding();
-        if (selectedEncoding == null) {
-            UiUtils.requestFocusLastFocusedComponent();
-            return;
-        }
 
         // #1 encoding is empty when snippet is inserted with palette
         if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
@@ -269,7 +285,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                         }
 
                         if (UiUtils.isEnterKey(event)) {
-                            changeEncoding(encodingPanel);
+                            changeEncoding(encodingPanel.getSelectedEncoding());
                         }
                     }
                 }
@@ -277,7 +293,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 private boolean isHidable(AWTEvent event) {
                     Object source = event.getSource();
                     if (UiUtils.isMouseClicked(event)
-                            && !UiUtils.isEncodingPanelComponent(source)
+                            && !UiUtils.isComponentOfClass(EncodingPanel.class, source)
                             && source != ENCODING_LABEL) {
                         return true;
 
@@ -316,7 +332,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             popup.hide();
             SHOWING_POPUP = false;
             encodingPanel.removeEncodingListMouseListener(this);
-            changeEncoding(encodingPanel);
+            changeEncoding(encodingPanel.getSelectedEncoding());
         }
 
     }
