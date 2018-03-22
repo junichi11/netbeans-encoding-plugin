@@ -41,6 +41,8 @@ package com.junichi11.netbeans.modules.encoding;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 import org.netbeans.junit.NbTestCase;
 import org.netbeans.spi.queries.FileEncodingQueryImplementation;
 import org.openide.filesystems.FileObject;
