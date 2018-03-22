@@ -40,7 +40,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = FileEncodingQueryImplementation.class, position = 10)
 public final class OpenInEncodingQueryImpl extends FileEncodingQueryImplementation {
 
-    public static final String ENCODING = "encoding"; // NOI18N
+    public static final String ENCODING = "encoding"; //NOI18N
 
     @Override
     public Charset getEncoding(FileObject file) {

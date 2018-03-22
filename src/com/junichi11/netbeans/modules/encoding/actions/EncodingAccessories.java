@@ -23,8 +23,6 @@ import org.openide.util.NbBundle;
  */
 public class EncodingAccessories extends javax.swing.JPanel {
 
-    private static final long serialVersionUID = 9119652225263260409L;
-
     /**
      * Creates new form EncodingAccessories
      */
@@ -81,11 +79,11 @@ public class EncodingAccessories extends javax.swing.JPanel {
 
         public EncodingModel() {
             final Collection<? extends Charset> acs = Charset.availableCharsets().values();
-            final List<EncodingKey> _data = new ArrayList<>(acs.size() + 1);
+            final List<EncodingKey> _data = new ArrayList<EncodingKey>(acs.size() + 1);
             _data.add(EncodingKey.DEFAULT);
-            acs.forEach((c) -> {
+            for (Charset c : acs) {
                 _data.add(new EncodingKey(c));
-            });
+            }
             data = Collections.unmodifiableList(_data);
         }
 
@@ -161,19 +159,17 @@ public class EncodingAccessories extends javax.swing.JPanel {
 
         @Override
         public String toString() {
-            return this.cs == null ? "<null>" : cs.toString();   // NOI18N
+            return this.cs == null ? "<null>" : cs.toString();   //NOI18N
         }
 
     }
 
     private static class EncodingRenderer extends DefaultListCellRenderer {
 
-        private static final long serialVersionUID = -1262247864555519110L;
-
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             if (value == null) {
-                return super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus); // NOI18N
+                return super.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus);   //NOI18N
             } else {
                 assert value instanceof EncodingKey;
                 return super.getListCellRendererComponent(list, ((EncodingKey) value).getDisplayName(), index, isSelected, cellHasFocus);

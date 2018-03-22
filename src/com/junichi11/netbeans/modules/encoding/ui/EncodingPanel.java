@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,166 +36,75 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
+ *
+ * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
 package com.junichi11.netbeans.modules.encoding.ui;
 
-import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
+import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.List;
-import javax.swing.DefaultListModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.SwingUtilities;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
+import org.netbeans.api.editor.EditorRegistry;
+import org.netbeans.api.queries.FileEncodingQuery;
+import org.netbeans.modules.editor.NbEditorUtilities;
+import org.netbeans.spi.queries.FileEncodingQueryImplementation;
+import org.openide.cookies.CloseCookie;
+import org.openide.cookies.EditorCookie;
+import org.openide.cookies.OpenCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
+import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
+import org.openide.util.LookupListener;
+import org.openide.util.Utilities;
+import org.openide.windows.Mode;
+import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
  *
  * @author junichi11
  */
-final class EncodingPanel extends JPanel {
+public class EncodingPanel extends JPanel implements LookupListener {
 
-    private static final Collection<? extends Charset> CHARSETS = Charset.availableCharsets().values();
-    private static final long serialVersionUID = -7350298167289629517L;
-
-    private DefaultListModel<String> encodingListModel = new DefaultListModel<>();
-    // listeners
-    private KeyListener encodingFilterKeyListener = new EncodingFilterKeyListener();
-    private KeyListener encodingListKeyListener = new EncodingListKeyAdapter();
-    private DocumentListener encodingFilterDocumentListener = new EncodingFilterDocumentListener();
+    private Lookup.Result<FileObject> result;
+    private FileObject currentFileObject;
+    private final OpenInEncodingQueryImpl queryImpl = new OpenInEncodingQueryImpl();
 
     /**
      * Creates new form EncodingPanel
      */
-    public EncodingPanel(Charset encoding) {
+    public EncodingPanel() {
         initComponents();
-        List<String> selectedEncodings = EncodingOptions.getInstance().getLastSelectedEncodings();
-        // add last 5 selected encodings to top of the list by default
-        selectedEncodings.forEach(e -> {
-            if (!e.equals(encoding.name())) {
-                encodingListModel.addElement(e);
-            }
-        });
-
-        // add the current encoding to top of the list
-        CHARSETS.forEach((charset) -> {
-            if (charset.name().equals(encoding.name())) {
-                encodingListModel.add(0, charset.name());
-            } else {
-                if (!selectedEncodings.contains(charset.name())) {
-                    encodingListModel.addElement(charset.name());
-                }
-            }
-        });
-        encodingList.setModel(encodingListModel);
-        encodingList.setSelectedValue(encoding.name(), true);
-        encodingFilterTextField.getDocument().addDocumentListener(encodingFilterDocumentListener);
-        encodingFilterTextField.addKeyListener(encodingFilterKeyListener);
-        encodingList.addKeyListener(encodingListKeyListener);
-        encodingFilterTextField.setVisible(false);
-        // set Preferred size
-        int preferredWidth = encodingListScrollPane.getPreferredSize().width;
-        int preferredHeight = WindowManager.getDefault().getMainWindow().getSize().height / 3;
-        encodingListScrollPane.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-
+        addLookupListener();
+        init();
     }
 
-    /**
-     * Clean up listeners.
-     */
-    void shutdown() {
-        // remove listeners
-        encodingFilterTextField.removeKeyListener(encodingFilterKeyListener);
-        encodingList.removeKeyListener(encodingListKeyListener);
-        encodingFilterTextField.getDocument().removeDocumentListener(encodingFilterDocumentListener);
-        encodingFilterKeyListener = null;
-        encodingListKeyListener = null;
-        encodingFilterDocumentListener = null;
-    }
-
-    /**
-     * Invoke when something is typed in the text field.
-     */
-    private void fireChange() {
-        assert EventQueue.isDispatchThread();
-        encodingListModel.clear();
-
-        // check all keywords separated by whitespaces
-        String filterText = encodingFilterTextField.getText();
-        String[] filters = filterText.split("\\s"); // NOI18N
-        CHARSETS.forEach(charset -> {
-            boolean addItem = true;
-            for (String filter : filters) {
-                if (!charset.name().toLowerCase().contains(filter.toLowerCase())) {
-                    addItem = false;
-                }
-            }
-            if (addItem) {
-                encodingListModel.addElement(charset.name());
-            }
-        });
-
-        if (encodingListModel.size() > 0) {
-            String element = encodingListModel.getElementAt(0);
-            encodingList.setSelectedValue(element, true);
+    private void init() {
+        defaultEncodingLabel.setText(""); // NOI18N
+        final Collection<? extends Charset> charsets = Charset.availableCharsets().values();
+        DefaultComboBoxModel defaultComboBoxModel = new DefaultComboBoxModel();
+        defaultComboBoxModel.addElement(""); // NOI18N
+        for (Charset charset : charsets) {
+            defaultComboBoxModel.addElement(charset.name());
         }
-
-        // show the text field
-        if (filterText.isEmpty()) {
-            encodingList.requestFocusInWindow();
-            encodingFilterTextField.setVisible(false);
-            revalidate();
-        }
+        encodingComboBox.setModel(defaultComboBoxModel);
+        encodingComboBox.addItemListener(new DefaultItemListener());
+        setEncodingEnabled(false);
     }
 
-    void addEncodingListMouseListener(MouseListener listener) {
-        encodingList.addMouseListener(listener);
-    }
-
-    void removeEncodingListMouseListener(MouseListener listener) {
-        encodingList.removeMouseListener(listener);
-    }
-
-    boolean isEncodingPanelComponent(Object object) {
-        return object == this
-                || isEncodingList(object)
-                || isEncodingListScrollBar(object)
-                || isEncodingFilterField(object);
-    }
-
-    boolean isEncodingListScrollBar(Object object) {
-        return encodingListScrollPane.getVerticalScrollBar() == object;
-    }
-
-    boolean isEncodingList(Object object) {
-        return encodingList == object;
-    }
-
-    boolean isEncodingFilterField(Object object) {
-        return encodingFilterTextField == object;
-    }
-
-    void requrestForcusEncodingFilter() {
-        encodingFilterTextField.requestFocusInWindow();
-    }
-
-    void requrestForcusEncodingList() {
-        encodingList.requestFocusInWindow();
-    }
-
-    /**
-     * Get the selected encoding.
-     *
-     * @return the selected encoding
-     */
-    public String getSelectedEncoding() {
-        return encodingList.getSelectedValue();
+    private void addLookupListener() {
+        result = Utilities.actionsGlobalContext().lookupResult(FileObject.class);
+        result.addLookupListener(this);
     }
 
     /**
@@ -207,128 +116,226 @@ final class EncodingPanel extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        encodingFilterTextField = new javax.swing.JTextField();
-        encodingListScrollPane = new javax.swing.JScrollPane();
-        encodingList = new javax.swing.JList<>();
+        encodingComboBox = new javax.swing.JComboBox();
+        defaultEncodingLabel = new javax.swing.JLabel();
 
-        encodingFilterTextField.setText(org.openide.util.NbBundle.getMessage(EncodingPanel.class, "EncodingPanel.encodingFilterTextField.text")); // NOI18N
+        encodingComboBox.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                encodingComboBoxMouseReleased(evt);
+            }
+        });
+        encodingComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                encodingComboBoxActionPerformed(evt);
+            }
+        });
 
-        encodingListScrollPane.setViewportView(encodingList);
+        org.openide.awt.Mnemonics.setLocalizedText(defaultEncodingLabel, org.openide.util.NbBundle.getMessage(EncodingPanel.class, "EncodingPanel.defaultEncodingLabel.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(encodingFilterTextField)
-            .addComponent(encodingListScrollPane)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(defaultEncodingLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(encodingListScrollPane)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(encodingFilterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(defaultEncodingLabel))
         );
+
+        defaultEncodingLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(EncodingPanel.class, "EncodingPanel.defaultEncodingLabel.AccessibleContext.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
+    private void encodingComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_encodingComboBoxActionPerformed
+
+    }//GEN-LAST:event_encodingComboBoxActionPerformed
+
+    private void encodingComboBoxMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_encodingComboBoxMouseReleased
+        setEncodingEnabled(isEditor());
+    }//GEN-LAST:event_encodingComboBoxMouseReleased
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField encodingFilterTextField;
-    private javax.swing.JList<String> encodingList;
-    private javax.swing.JScrollPane encodingListScrollPane;
+    private javax.swing.JLabel defaultEncodingLabel;
+    private javax.swing.JComboBox encodingComboBox;
     // End of variables declaration//GEN-END:variables
 
-    //~ Inner classes
-    private class EncodingFilterKeyListener implements KeyListener {
-
-        public EncodingFilterKeyListener() {
+    @Override
+    public void resultChanged(LookupEvent lookupEvent) {
+        Lookup.Result r = (Lookup.Result) lookupEvent.getSource();
+        Collection c = r.allInstances();
+        String en = ""; // NOI18N
+        if (!c.isEmpty()) {
+            currentFileObject = (FileObject) c.iterator().next();
+            Charset encoding = getEncoding(currentFileObject);
+            if (encoding != null) {
+                en = encoding.name();
+            }
+        } else {
+            currentFileObject = null;
         }
+        final String encodingName = en;
 
-        @Override
-        public void keyTyped(KeyEvent e) {
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // XXX show project encoding?
+//                setDefaultEncoding(currentFileObject);
+                setEncodingEnabled(currentFileObject);
+                encodingComboBox.setSelectedItem(encodingName); // NOI18N
+            }
+        });
+    }
 
-        @Override
-        public void keyPressed(KeyEvent e) {
-            // change a selected item
-            int size = encodingListModel.getSize();
-            if (size > 0) {
-                int selectedIndex = encodingList.getSelectedIndex();
-                String element;
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                        if (selectedIndex == 0) {
-                            element = encodingListModel.getElementAt(size - 1);
-                        } else {
-                            element = encodingListModel.getElementAt(selectedIndex - 1);
-                        }
-                        break;
-                    case KeyEvent.VK_DOWN:
-                        if (selectedIndex == size - 1) {
-                            element = encodingListModel.getElementAt(0);
-                        } else {
-                            element = encodingListModel.getElementAt(selectedIndex + 1);
-                        }
-                        break;
-                    default:
-                        element = null;
-                        break;
-                }
-
-                if (element != null) {
-                    encodingList.setSelectedValue(element, true);
-                }
+    private boolean isEditor() {
+        TopComponent activated = TopComponent.getRegistry().getActivated();
+        if (activated != null) {
+            WindowManager windowManager = WindowManager.getDefault();
+            Mode mode = windowManager.findMode(activated);
+            if (mode != null) {
+                String name = mode.getName();
+                return name.equals("editor"); // NOI18N
             }
         }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-        }
+        return false;
     }
 
-    private class EncodingFilterDocumentListener implements DocumentListener {
-
-        public EncodingFilterDocumentListener() {
+    private Charset getEncoding(FileObject fileObject) {
+        Charset encoding = queryImpl.getEncoding(fileObject);
+        if (encoding == null) {
+            encoding = FileEncodingQuery.getEncoding(fileObject);
         }
-
-        @Override
-        public void insertUpdate(DocumentEvent e) {
-            processUpdate();
-        }
-
-        @Override
-        public void removeUpdate(DocumentEvent e) {
-            processUpdate();
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent e) {
-            processUpdate();
-        }
-
-        private void processUpdate() {
-            fireChange();
-        }
+        return encoding;
     }
 
-    private class EncodingListKeyAdapter extends KeyAdapter {
-
-        public EncodingListKeyAdapter() {
-        }
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-            // XXX validate key char
-            switch (e.getKeyChar()) {
-                case '\b': // backspace no break
-                case '\u007f': // delete
-                    return;
-                default:
-                    encodingFilterTextField.setVisible(true);
-                    encodingFilterTextField.requestFocusInWindow();
-                    revalidate();
-                    encodingFilterTextField.setText(String.valueOf(e.getKeyChar()));
+    private void setDefaultEncoding(FileObject fileObject) {
+        Charset charset = null;
+        if (fileObject != null) {
+            for (FileEncodingQueryImplementation impl : Lookup.getDefault().lookupAll(FileEncodingQueryImplementation.class)) {
+                if (impl instanceof OpenInEncodingQueryImpl) {
+                    continue;
+                }
+                Charset encoding = impl.getEncoding(fileObject);
+                if (encoding != null) {
+                    charset = encoding;
                     break;
+                }
             }
         }
+
+        String encoding = ""; // NOI18N
+        if (charset != null) {
+            encoding = String.format("(%s)", charset.name()); // NOI18N
+        }
+        defaultEncodingLabel.setText(encoding);
+    }
+
+    private void setEncodingEnabled(boolean isEnabled) {
+        encodingComboBox.setEnabled(isEnabled);
+    }
+
+    private void setEncodingEnabled(FileObject fileObject) {
+        if (fileObject == null || fileObject.isFolder()) {
+            setEncodingEnabled(false);
+            return;
+        }
+
+        FileObject lastFocusedFileObject = getLastFocusedFileObject();
+        if (fileObject == lastFocusedFileObject) {
+            setEncodingEnabled(true);
+            return;
+        }
+
+        setEncodingEnabled(isEditor());
+    }
+
+    private FileObject getLastFocusedFileObject() {
+        JTextComponent editor = EditorRegistry.lastFocusedComponent();
+        if (editor == null) {
+            return null;
+        }
+
+        Document document = editor.getDocument();
+        if (document == null) {
+            return null;
+        }
+
+        return NbEditorUtilities.getFileObject(document);
+    }
+
+    //~ Inner class
+    private class DefaultItemListener implements ItemListener {
+
+        public DefaultItemListener() {
+        }
+
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+            if (e.getStateChange() != ItemEvent.SELECTED) {
+                return;
+            }
+
+            FileObject fileObject = getLastFocusedFileObject();
+            if (fileObject == null) {
+                return;
+            }
+
+            // same encoding?
+            Charset encoding = getEncoding(fileObject);
+            String currentEncoding = encoding.name();
+            String selectedEncoding = (String) e.getItem();
+            // #1 encoding is empty when snippet is inserted with palette
+            if (selectedEncoding.equals(currentEncoding) || selectedEncoding.isEmpty()) {
+                return;
+            }
+
+            // set encoding to attribute, reopen file
+            if (currentFileObject != null && fileObject == currentFileObject) {
+                try {
+                    currentFileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
+                    final DataObject dobj = DataObject.find(currentFileObject);
+
+                    reopen(dobj);
+
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                } catch (InterruptedException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+
+        private void reopen(DataObject dobj) throws InterruptedException {
+            close(dobj);
+
+            // XXX java.lang.AssertionError is occurred
+            Thread.sleep(200);
+
+            open(dobj);
+        }
+
+        private void close(DataObject dobj) {
+            CloseCookie cc = dobj.getLookup().lookup(CloseCookie.class);
+            EditorCookie ec = dobj.getLookup().lookup(EditorCookie.class);
+
+            if (cc != null) {
+                cc.close();
+            }
+            if (ec != null) {
+                ec.close();
+            }
+        }
+
+        private void open(DataObject dobj) {
+            OpenCookie oc = dobj.getLookup().lookup(OpenCookie.class);
+            if (oc != null) {
+                oc.open();
+            }
+        }
+
     }
 }

@@ -3,32 +3,17 @@ This plugin opens/saves a file with a specified encoding.
 
 ## Requirements
 
-- NetBeans8.2+
+- NetBeans7.4+
 
 ## Open/Save in Encoding
 
 File > Open/Save in Encoding...
 
-## Show encoding on the status line
-Current file encoding will be shown on the status line. If you want to change encoding, Please click the encoding label.
+## Show encoding on Toolbar
+Current file encoding will be shown on Toolbar. If you want to change encoding, Please select specific encoding.
 (Note: Then, file is closed once and opened again. i.e. File is reopened.)
 
-![screenshot](screenshots/nb-encoding-statusline.png)
-
-## Search encodings
-
-To search encodings, you can type something when the encoding list is shown.
-You can use <kbd>↑</kbd> and <kbd>↓</kbd>key to change the selected encoding.
-You can use <kbd>Enter</kbd> key to decide the encoding.
-
-## Hide the encoding list
-
-Just type <kbd>ESC</kbd> key or click other than the encoding list.
-
-## Downloads
-
-- https://github.com/junichi11/netbeans-encoding-plugin/releases
-- http://plugins.netbeans.org/plugin/60487/encoding-support
+If you don't want to show it, uncheck `View > Toolbar > Encoding`.
 
 ## Translations
 
