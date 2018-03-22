@@ -39,6 +39,7 @@
  */
 package com.junichi11.netbeans.modules.encoding.ui;
 
+import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.KeyAdapter;
@@ -47,6 +48,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -73,8 +75,23 @@ final class EncodingPanel extends JPanel {
      */
     public EncodingPanel(Charset encoding) {
         initComponents();
+        List<String> selectedEncodings = EncodingOptions.getInstance().getLastSelectedEncodings();
+        // add last 5 selected encodings to top of the list by default
+        selectedEncodings.forEach(e -> {
+            if (!e.equals(encoding.name())) {
+                encodingListModel.addElement(e);
+            }
+        });
+
+        // add the current encoding to top of the list
         CHARSETS.forEach((charset) -> {
-            encodingListModel.addElement(charset.name());
+            if (charset.name().equals(encoding.name())) {
+                encodingListModel.add(0, charset.name());
+            } else {
+                if (!selectedEncodings.contains(charset.name())) {
+                    encodingListModel.addElement(charset.name());
+                }
+            }
         });
         encodingList.setModel(encodingListModel);
         encodingList.setSelectedValue(encoding.name(), true);
@@ -213,7 +230,6 @@ final class EncodingPanel extends JPanel {
                 .addComponent(encodingFilterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField encodingFilterTextField;

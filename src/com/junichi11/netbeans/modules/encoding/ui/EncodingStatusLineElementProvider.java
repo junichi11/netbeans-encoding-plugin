@@ -40,6 +40,7 @@
 package com.junichi11.netbeans.modules.encoding.ui;
 
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -171,6 +172,8 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
             final DataObject dobj = DataObject.find(fileObject);
 
+            // save selected encoding to options
+            EncodingOptions.getInstance().setLastSelectedEncodings(selectedEncoding);
             UiUtils.reopen(dobj);
 
         } catch (IOException ex) {
