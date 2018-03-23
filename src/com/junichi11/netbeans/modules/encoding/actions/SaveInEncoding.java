@@ -1,5 +1,6 @@
 package com.junichi11.netbeans.modules.encoding.actions;
 
+import com.junichi11.netbeans.modules.encoding.ui.EncodingFileChooser;
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
 import java.io.File;
 import java.io.IOException;
@@ -9,7 +10,11 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
 import org.netbeans.api.queries.FileEncodingQuery;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -37,22 +42,29 @@ public final class SaveInEncoding extends CookieAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         final DataObject dataObject = activatedNodes[0].getLookup().lookup(DataObject.class);
+        if (dataObject == null) {
+            return;
+        }
         FileObject fo = dataObject.getPrimaryFile();
+        Project project = FileOwnerQuery.getOwner(fo);
+        // prevent freezing
+        if (project == null && !dataObject.isModified()) {
+            NotifyDescriptor.Message message = new NotifyDescriptor.Message("The file is not modified.", NotifyDescriptor.INFORMATION_MESSAGE);
+            DialogDisplayer.getDefault().notify(message);
+            return;
+        }
         File f = FileUtil.toFile(fo);
         if (f == null) {
             f = FileUtil.normalizeFile(new File(new File(System.getProperty("user.name")), fo.getNameExt()));
         }
-        final JFileChooser chooser = new JFileChooser();
+        final EncodingFileChooser chooser = new EncodingFileChooser(); // Always suggest the default encoding
         chooser.setCurrentDirectory(null);
         chooser.setDialogTitle(NbBundle.getMessage(OpenInEncoding.class, "TXT_SaveFile"));
         chooser.setApproveButtonText(NbBundle.getMessage(OpenInEncoding.class, "CTL_Save"));
         chooser.setApproveButtonMnemonic(NbBundle.getMessage(OpenInEncoding.class, "MNE_Save").charAt(0));
         chooser.setSelectedFile(f);
-        final EncodingAccessories acc = new EncodingAccessories();
-        acc.setEncoding(null); //Always suggest the default encoding
-        chooser.setAccessory(acc);
         if (chooser.showSaveDialog(WindowManager.getDefault().getMainWindow()) == JFileChooser.APPROVE_OPTION) {
-            final Charset charset = acc.getEncoding();
+            final Charset charset = chooser.getEncoding();
             final String encodingName = (charset == null ? null : charset.name());
             OpenInEncoding.lastFolder = chooser.getCurrentDirectory();
             final File file = FileUtil.normalizeFile(chooser.getSelectedFile());

@@ -5,7 +5,9 @@
  */
 package com.junichi11.netbeans.modules.encoding.actions;
 
+import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +36,11 @@ public class EncodingAccessories extends javax.swing.JPanel {
         this.encoding.setRenderer(new EncodingRenderer());
     }
 
+    public EncodingAccessories(Dimension dimension) {
+        this();
+        jLabel1.setPreferredSize(dimension);
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -45,24 +52,13 @@ public class EncodingAccessories extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         encoding = new javax.swing.JComboBox();
 
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+
         jLabel1.setLabelFor(encoding);
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(EncodingAccessories.class, "EncodingAccessories.jLabel1.text")); // NOI18N
+        add(jLabel1);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(encoding, 0, 400, Short.MAX_VALUE)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(encoding, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        add(encoding);
     }// </editor-fold>//GEN-END:initComponents
 
     public Charset getEncoding() {
@@ -83,8 +79,17 @@ public class EncodingAccessories extends javax.swing.JPanel {
             final Collection<? extends Charset> acs = Charset.availableCharsets().values();
             final List<EncodingKey> _data = new ArrayList<>(acs.size() + 1);
             _data.add(EncodingKey.DEFAULT);
-            acs.forEach((c) -> {
-                _data.add(new EncodingKey(c));
+            List<String> lastSelectedEncodings = EncodingOptions.getInstance().getLastSelectedEncodings();
+            lastSelectedEncodings.forEach(encoding -> {
+                if (Charset.isSupported(encoding)) {
+                    EncodingKey encodingKey = new EncodingKey(Charset.forName(encoding));
+                    _data.add(encodingKey);
+                }
+            });
+            acs.forEach(charset -> {
+                if (!lastSelectedEncodings.contains(charset.name())) {
+                    _data.add(new EncodingKey(charset));
+                }
             });
             data = Collections.unmodifiableList(_data);
         }
