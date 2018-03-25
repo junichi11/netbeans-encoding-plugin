@@ -1,6 +1,8 @@
 package com.junichi11.netbeans.modules.encoding.actions;
 
+import com.junichi11.netbeans.modules.encoding.ui.EncodingFileChooser;
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -30,17 +32,17 @@ public final class OpenInEncoding extends CallableSystemAction {
 
     @Override
     public void performAction() {
-        final JFileChooser chooser = new JFileChooser();
+        final EncodingFileChooser chooser = new EncodingFileChooser(lastEncoding);
         chooser.setCurrentDirectory(null);
         chooser.setDialogTitle(NbBundle.getMessage(OpenInEncoding.class, "TXT_OpenFile"));
         chooser.setApproveButtonText(NbBundle.getMessage(OpenInEncoding.class, "CTL_Open"));
         chooser.setApproveButtonMnemonic(NbBundle.getMessage(OpenInEncoding.class, "MNE_Open").charAt(0));
         chooser.setCurrentDirectory(lastFolder);
-        final EncodingAccessories acc = new EncodingAccessories();
-        acc.setEncoding(lastEncoding);
-        chooser.setAccessory(acc);
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) == JFileChooser.APPROVE_OPTION) {
-            final Charset charset = acc.getEncoding();
+            final Charset charset = chooser.getEncoding();
+            if (charset != null) {
+                EncodingOptions.getInstance().setLastSelectedEncodings(charset.name());
+            }
             lastEncoding = charset;
             lastFolder = chooser.getCurrentDirectory();
             final File file = FileUtil.normalizeFile(chooser.getSelectedFile());
