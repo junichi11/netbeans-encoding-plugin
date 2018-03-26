@@ -85,12 +85,21 @@ public final class EncodingOptions {
 
     public void setLastSelectedEncodings(String encoding) {
         List<String> selectedEncodings = new ArrayList<>(getLastSelectedEncodings());
+        if (!selectedEncodings.isEmpty()
+                && selectedEncodings.get(0).equals(encoding)) {
+            // the same as the last encoding
+            return;
+        }
         if (selectedEncodings.contains(encoding)) {
             selectedEncodings.remove(encoding);
             selectedEncodings.add(0, encoding);
         } else {
-            if (selectedEncodings.size() >= getLastSelectedEncodingsMaxSize()) {
-                selectedEncodings.remove(getLastSelectedEncodingsMaxSize() - 1);
+            int maxSize = getLastSelectedEncodingsMaxSize();
+            int selectedEncodingsSize = selectedEncodings.size();
+            if (selectedEncodingsSize >= maxSize) {
+                for (int i = maxSize - 1; i < selectedEncodingsSize; i++) {
+                    selectedEncodings.remove(i);
+                }
             }
             selectedEncodings.add(0, encoding);
         }
