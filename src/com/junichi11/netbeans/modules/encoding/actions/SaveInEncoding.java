@@ -2,6 +2,7 @@ package com.junichi11.netbeans.modules.encoding.actions;
 
 import com.junichi11.netbeans.modules.encoding.ui.EncodingFileChooser;
 import com.junichi11.netbeans.modules.encoding.OpenInEncodingQueryImpl;
+import com.junichi11.netbeans.modules.encoding.ui.UiUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,8 +14,6 @@ import javax.swing.JFileChooser;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.queries.FileEncodingQuery;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -49,8 +48,7 @@ public final class SaveInEncoding extends CookieAction {
         Project project = FileOwnerQuery.getOwner(fo);
         // prevent freezing
         if (project == null && !dataObject.isModified()) {
-            NotifyDescriptor.Message message = new NotifyDescriptor.Message("The file is not modified.", NotifyDescriptor.INFORMATION_MESSAGE);
-            DialogDisplayer.getDefault().notify(message);
+            UiUtils.showInformationMessage("The file is not modified.");
             return;
         }
         File f = FileUtil.toFile(fo);

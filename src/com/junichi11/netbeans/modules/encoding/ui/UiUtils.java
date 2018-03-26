@@ -172,6 +172,15 @@ public final class UiUtils {
         showMessage(message, NotifyDescriptor.ERROR_MESSAGE);
     }
 
+    /**
+     * Show the information message
+     *
+     * @param message the infomation message
+     */
+    public static void showInformationMessage(String message) {
+        showMessage(message, NotifyDescriptor.INFORMATION_MESSAGE);
+    }
+
     private static void showMessage(String message, int messageType) {
         NotifyDescriptor descriptor = new NotifyDescriptor.Message(
                 message,
