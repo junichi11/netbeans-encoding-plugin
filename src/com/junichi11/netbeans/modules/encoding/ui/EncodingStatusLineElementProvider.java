@@ -223,6 +223,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         private void updateEncoding() {
             assert EventQueue.isDispatchThread();
+            this.setPreferredSize(null);
             FileObject fileObject;
             if (SHOWING_POPUP) {
                 fileObject = UiUtils.getLastFocusedFileObject();
@@ -232,9 +233,13 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             if (fileObject != null) {
                 Charset encoding = getEncoding(fileObject);
                 this.setText(String.format(" %s ", encoding.displayName())); // NOI18N
+                this.setIcon(ImageUtilities.loadImageIcon(ENCODING_LIST_ICON_16, false));
                 return;
             }
-            this.setText("        "); // NOI18N
+            Dimension size = this.getSize();
+            this.setPreferredSize(size);
+            this.setText(""); // NOI18N
+            this.setIcon(null);
         }
 
         private Charset getEncoding(FileObject fileObject) {
