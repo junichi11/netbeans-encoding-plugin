@@ -82,7 +82,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = StatusLineElementProvider.class)
 public class EncodingStatusLineElementProvider implements StatusLineElementProvider {
 
-    private static final JLabel ENCODING_LABEL = new EncodingLabel();
+    private static final JLabel ENCODING_LABEL = EncodingLabel.create();
     private static final Component COMPONENT = panelWithSeparator(ENCODING_LABEL);
     private static final Logger LOGGER = Logger.getLogger(EncodingStatusLineElementProvider.class.getName());
     private static volatile boolean SHOWING_POPUP;
@@ -204,7 +204,17 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         @StaticResource
         public static final String ENCODING_LIST_ICON_16 = "com/junichi11/netbeans/modules/encoding/resources/encoding_16.png"; // NOI18N
-        private static final long serialVersionUID = 7553842743917776222L;
+        private static final long serialVersionUID = -5078620344180235634L;
+
+        public static EncodingLabel create() {
+            EncodingLabel label = new EncodingLabel();
+            label.setText("        ");
+            label.setIcon(ImageUtilities.loadImageIcon(ENCODING_LIST_ICON_16, false));
+            return label;
+        }
+
+        private EncodingLabel() {
+        }
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
@@ -213,6 +223,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         private void updateEncoding() {
             assert EventQueue.isDispatchThread();
+            this.setPreferredSize(null);
             FileObject fileObject;
             if (SHOWING_POPUP) {
                 fileObject = UiUtils.getLastFocusedFileObject();
@@ -225,7 +236,9 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 this.setIcon(ImageUtilities.loadImageIcon(ENCODING_LIST_ICON_16, false));
                 return;
             }
-            this.setText("    "); // NOI18N
+            Dimension size = this.getSize();
+            this.setPreferredSize(size);
+            this.setText(""); // NOI18N
             this.setIcon(null);
         }
 

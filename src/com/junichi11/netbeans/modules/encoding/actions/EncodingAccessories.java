@@ -38,7 +38,7 @@ public class EncodingAccessories extends javax.swing.JPanel {
 
     public EncodingAccessories(Dimension dimension) {
         this();
-        jLabel1.setPreferredSize(dimension);
+        encodingLabel.setPreferredSize(dimension);
     }
 
     /**
@@ -49,14 +49,14 @@ public class EncodingAccessories extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
+        encodingLabel = new javax.swing.JLabel();
         encoding = new javax.swing.JComboBox();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
 
-        jLabel1.setLabelFor(encoding);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(EncodingAccessories.class, "EncodingAccessories.jLabel1.text")); // NOI18N
-        add(jLabel1);
+        encodingLabel.setLabelFor(encoding);
+        org.openide.awt.Mnemonics.setLocalizedText(encodingLabel, org.openide.util.NbBundle.getMessage(EncodingAccessories.class, "EncodingAccessories.encodingLabel.text")); // NOI18N
+        add(encodingLabel);
 
         add(encoding);
     }// </editor-fold>//GEN-END:initComponents
@@ -189,7 +189,7 @@ public class EncodingAccessories extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox encoding;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel encodingLabel;
     // End of variables declaration//GEN-END:variables
 
 }
