@@ -30,6 +30,10 @@ Just type <kbd>ESC</kbd> key or click other than the encoding list.
 - https://github.com/junichi11/netbeans-encoding-plugin/releases
 - http://plugins.netbeans.org/plugin/60487/encoding-support
 
+## Donation
+
+<a href="https://www.patreon.com/junichi11"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50"></a>
+
 ## Translations
 
 - [README_es.md](README_es.md) - Español ([@javatlacati](https://github.com/javatlacati))
