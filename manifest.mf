@@ -2,5 +2,5 @@ Manifest-Version: 1.0
 OpenIDE-Module: com.junichi11.netbeans.modules.encoding
 OpenIDE-Module-Layer: com/junichi11/netbeans/modules/encoding/resources/layer.xml
 OpenIDE-Module-Localizing-Bundle: com/junichi11/netbeans/modules/encoding/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.5.0
+OpenIDE-Module-Specification-Version: 1.6.0
 
