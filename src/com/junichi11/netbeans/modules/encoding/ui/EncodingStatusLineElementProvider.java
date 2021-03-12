@@ -54,23 +54,32 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
+import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.awt.StatusLineElementProvider;
+import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.text.CloneableEditorSupport;
+import org.openide.text.DataEditorSupport;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
@@ -167,19 +176,40 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
             return;
         }
 
-        // set encoding to attribute, reopen file
+        // set encoding to attribute, reload a document
         try {
             fileObject.setAttribute(OpenInEncodingQueryImpl.ENCODING, selectedEncoding);
             final DataObject dobj = DataObject.find(fileObject);
 
+            // don't show dialog
+            // if a cancel button is clicked, text can be cleared
+            Field field = DataEditorSupport.class.getDeclaredField("warnedEncodingFiles"); // NOI18N
+            field.setAccessible(true);
+            Set<FileObject> fileObjects = (Set<FileObject>) field.get(null);
+            fileObjects.add(fileObject);
+
+            // reload editor
+            EditorCookie ec = dobj.getLookup().lookup(EditorCookie.class);
+            Method notifyModified = CloneableEditorSupport.class.getDeclaredMethod("checkReload", JEditorPane[].class, boolean.class); // NOI18N
+            notifyModified.setAccessible(true);
+            JEditorPane[] focusedPanes = new JEditorPane[]{};
+            JTextComponent component = EditorRegistry.lastFocusedComponent();
+            if (component instanceof JEditorPane) {
+                focusedPanes = new JEditorPane[]{(JEditorPane) component};
+            }
+            notifyModified.invoke(ec, focusedPanes, true);
+
             // save selected encoding to options
             EncodingOptions.getInstance().setLastSelectedEncodings(selectedEncoding);
-            UiUtils.reopen(dobj);
-
-        } catch (IOException ex) {
+            UiUtils.requestFocusLastFocusedComponent();
+        } catch (IOException
+                | IllegalAccessException
+                | IllegalArgumentException
+                | InvocationTargetException
+                | NoSuchMethodException
+                | SecurityException
+                | NoSuchFieldException ex) {
             LOGGER.log(Level.WARNING, null, ex);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
         }
     }
 
