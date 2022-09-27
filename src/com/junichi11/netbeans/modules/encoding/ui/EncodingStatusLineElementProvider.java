@@ -48,6 +48,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.AWTEventListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -69,6 +70,7 @@ import javax.swing.JSeparator;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.editor.EditorRegistry;
@@ -298,6 +300,9 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 return;
             }
 
+            // forcusable
+            setForcusableWindowState(encodingPanel, true);
+
             // add listener
             final EncodingListMouseAdapter encodingListMouseAdapter = new EncodingListMouseAdapter(encodingPanel, popup);
             encodingPanel.addEncodingListMouseListener(encodingListMouseAdapter);
@@ -307,6 +312,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
                 @Override
                 public void eventDispatched(AWTEvent event) {
                     if (isHidable(event)) {
+                        setForcusableWindowState(encodingPanel, false);
                         Object source = event.getSource();
                         popup.hide();
                         SHOWING_POPUP = false;
@@ -363,6 +369,13 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
         }
     }
 
+    private static void setForcusableWindowState(Component encodingPanel, boolean focusableWindowState) {
+        Window window = SwingUtilities.windowForComponent(encodingPanel);
+        if (window != null) {
+            window.setFocusableWindowState(focusableWindowState);
+        }
+    }
+
     private static class EncodingListMouseAdapter extends MouseAdapter {
 
         private final EncodingPanel encodingPanel;
@@ -375,6 +388,7 @@ public class EncodingStatusLineElementProvider implements StatusLineElementProvi
 
         @Override
         public void mouseClicked(MouseEvent e) {
+            setForcusableWindowState(encodingPanel, false);
             popup.hide();
             SHOWING_POPUP = false;
             encodingPanel.removeEncodingListMouseListener(this);

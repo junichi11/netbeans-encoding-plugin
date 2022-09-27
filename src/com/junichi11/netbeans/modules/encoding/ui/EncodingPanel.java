@@ -42,6 +42,8 @@ package com.junichi11.netbeans.modules.encoding.ui;
 import com.junichi11.netbeans.modules.encoding.options.EncodingOptions;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -97,6 +99,16 @@ final class EncodingPanel extends JPanel {
         encodingList.setSelectedValue(encoding.name(), true);
         encodingFilterTextField.getDocument().addDocumentListener(encodingFilterDocumentListener);
         encodingFilterTextField.addKeyListener(encodingFilterKeyListener);
+        // don't select text when the text field is focused
+        encodingFilterTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                String selectedText = encodingFilterTextField.getSelectedText();
+                if (selectedText != null) {
+                    encodingFilterTextField.select(selectedText.length(), selectedText.length());
+                }
+            }
+        });
         encodingList.addKeyListener(encodingListKeyListener);
         encodingFilterTextField.setVisible(false);
         // set Preferred size
@@ -128,6 +140,14 @@ final class EncodingPanel extends JPanel {
 
         // check all keywords separated by whitespaces
         String filterText = encodingFilterTextField.getText();
+
+        // when all chars are selected and something is typed
+        if (filterText.length() > 0 && !encodingFilterTextField.isVisible()) {
+            encodingFilterTextField.setVisible(true);
+            encodingFilterTextField.requestFocusInWindow();
+            revalidate();
+        }
+
         String[] filters = filterText.split("\\s"); // NOI18N
         CHARSETS.forEach(charset -> {
             boolean addItem = true;
