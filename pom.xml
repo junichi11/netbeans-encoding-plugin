@@ -4,7 +4,7 @@
     <groupId>com.junichi11.netbeans.modules</groupId>
     <artifactId>netbeans-encoding</artifactId>
     <!-- change the version of build.xml -->
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <packaging>nbm</packaging>
     <name>NetBeans Encoding Plugin</name>
     <url>https://github.com/junichi11/netbeans-encoding-plugin</url>
